@@ -35,7 +35,7 @@ bool config_load_file() {
 /// @return Property value as string if present
 std::optional<std::string> config_get_str(std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
-    if (env_value != NULL) {
+    if (env_value != nullptr) {
         return std::string(env_value);
     } else if (config_json.contains(property)) {
         return config_json[property];
@@ -49,7 +49,7 @@ std::optional<std::string> config_get_str(std::string property) {
 /// @return Property value as boolean if present
 std::optional<bool> config_get_bool(std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
-    if (env_value != NULL) {
+    if (env_value != nullptr) {
         return std::strcmp(env_value, "1") || 
                 std::strcmp(env_value, "true") || 
                 std::strcmp(env_value, "TRUE");
@@ -65,7 +65,7 @@ std::optional<bool> config_get_bool(std::string property) {
 /// @return Property value as integer if present
 std::optional<int> config_get_int(std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
-    if (env_value != NULL) {
+    if (env_value != nullptr) {
         return std::atoi(env_value);
     } else if (config_json.contains(property)) {
         return config_json[property];
