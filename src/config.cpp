@@ -1,0 +1,75 @@
+#include <fstream>
+#include <map>
+#include <optional>
+#include <string>
+#include <stdexcept>
+
+#include <dpp/nlohmann/json.hpp>
+using json = nlohmann::json;
+
+static json config_json;
+
+/// @brief Convert given string to uppercase
+/// @param str 
+/// @return New uppercased string
+inline std::string uppercase(std::string str) {
+    std::string copied_str(str);
+    std::transform(copied_str.begin(), copied_str.end(), copied_str.begin(), ::toupper);
+    return copied_str;
+}
+
+/// @brief Load config.json to be parsed
+/// @return Whether the file was successfully found
+bool config_load_file() {
+    std::ifstream config_file("config.json");
+    if (config_file.good()) {
+        config_json = json::parse(config_file);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/// @brief Get a string property from either the config file or env
+/// @param property Property name
+/// @return Property value as string if present
+std::optional<std::string> config_get_str(std::string property) {
+    char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
+    if (env_value != NULL) {
+        return std::string(env_value);
+    } else if (config_json.contains(property)) {
+        return config_json[property];
+    }
+
+    return {};
+}
+
+/// @brief Get a boolean property from either the config file or env
+/// @param property Property name
+/// @return Property value as boolean if present
+std::optional<bool> config_get_bool(std::string property) {
+    char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
+    if (env_value != NULL) {
+        return std::strcmp(env_value, "1") || 
+                std::strcmp(env_value, "true") || 
+                std::strcmp(env_value, "TRUE");
+    } else if (config_json.contains(property)) {
+        return config_json[property];
+    }
+
+    return {};
+}
+
+/// @brief Get a integer property from either the config file or env
+/// @param property Property name
+/// @return Property value as integer if present
+std::optional<int> config_get_int(std::string property) {
+    char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
+    if (env_value != NULL) {
+        return std::atoi(env_value);
+    } else if (config_json.contains(property)) {
+        return config_json[property];
+    }
+
+    return {};
+}
