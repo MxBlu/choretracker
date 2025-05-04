@@ -12,7 +12,7 @@ static json config_json;
 /// @brief Convert given string to uppercase
 /// @param str 
 /// @return New uppercased string
-inline std::string uppercase(std::string str) {
+inline std::string uppercase(const std::string str) {
     std::string copied_str(str);
     std::transform(copied_str.begin(), copied_str.end(), copied_str.begin(), ::toupper);
     return copied_str;
@@ -33,7 +33,7 @@ bool config_load_file() {
 /// @brief Get a string property from either the config file or env
 /// @param property Property name
 /// @return Property value as string if present
-std::optional<std::string> config_get_str(std::string property) {
+std::optional<std::string> config_get_str(const std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
     if (env_value != nullptr) {
         return std::string(env_value);
@@ -47,7 +47,7 @@ std::optional<std::string> config_get_str(std::string property) {
 /// @brief Get a boolean property from either the config file or env
 /// @param property Property name
 /// @return Property value as boolean if present
-std::optional<bool> config_get_bool(std::string property) {
+std::optional<bool> config_get_bool(const std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
     if (env_value != nullptr) {
         return std::strcmp(env_value, "1") == 0 || 
@@ -63,7 +63,7 @@ std::optional<bool> config_get_bool(std::string property) {
 /// @brief Get a integer property from either the config file or env
 /// @param property Property name
 /// @return Property value as integer if present
-std::optional<int> config_get_int(std::string property) {
+std::optional<int> config_get_int(const std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
     if (env_value != nullptr) {
         return std::atoi(env_value);
