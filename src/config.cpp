@@ -50,9 +50,9 @@ std::optional<std::string> config_get_str(std::string property) {
 std::optional<bool> config_get_bool(std::string property) {
     char *env_value = std::getenv(("CHORETRACKER_" + uppercase(property)).c_str());
     if (env_value != nullptr) {
-        return std::strcmp(env_value, "1") || 
-                std::strcmp(env_value, "true") || 
-                std::strcmp(env_value, "TRUE");
+        return std::strcmp(env_value, "1") == 0 || 
+                std::strcmp(env_value, "true") == 0 || 
+                std::strcmp(env_value, "TRUE") == 0;
     } else if (config_json.contains(property)) {
         return config_json[property];
     }
