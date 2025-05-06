@@ -7,16 +7,9 @@
 #include <dpp/nlohmann/json.hpp>
 using json = nlohmann::json;
 
-static json config_json;
+#include "choretracker/utils.hpp"
 
-/// @brief Convert given string to uppercase
-/// @param str 
-/// @return New uppercased string
-inline std::string uppercase(const std::string str) {
-    std::string copied_str(str);
-    std::transform(copied_str.begin(), copied_str.end(), copied_str.begin(), ::toupper);
-    return copied_str;
-}
+static json config_json;
 
 /// @brief Load config.json to be parsed
 /// @return Whether the file was successfully found
