@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "dpp",
+    "openssl",
+    "spdlog"
+  ]
+}
