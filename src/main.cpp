@@ -6,6 +6,7 @@
 #include <dpp/dpp.h>
 #include <dpp/nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <spdlog/cfg/env.h>
 
 #include "choretracker/alerter.h"
 #include "choretracker/config.h"
@@ -13,7 +14,6 @@
 #include "choretracker/utils.hpp"
 
 static Database db;
-static Alerter alerter(db);
 
 void list_chores(const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
@@ -75,6 +75,8 @@ void reset_chore(const dpp::slashcommand_t &event) {
 }
 
 int main(int argc, char const *argv[]) {
+    spdlog::cfg::load_env_levels();
+    
     // Ensure config file is loaded
     bool config_was_loaded = config_load_file();
     if (config_was_loaded) {
@@ -91,8 +93,9 @@ int main(int argc, char const *argv[]) {
     }
 
     dpp::cluster bot(bot_token.value());
+    Alerter alerter(db, bot);
 
-    bot.on_ready([&bot](const dpp::ready_t &event) {
+    bot.on_ready([&bot, &alerter](const dpp::ready_t &event) {
         spdlog::info("Discord connected");
 
         // Register commands
@@ -117,7 +120,7 @@ int main(int argc, char const *argv[]) {
 
             auto test_guild = config_get_str(CONFIG_TEST_GUILD).value();
             bot.guild_bulk_command_create({
-                list_chores_command, add_chores_command, delete_chores_command, reset_chore_command
+                list_chores_command, add_chores_command, delete_chores_command, reset_chore_command, run_alerts_command
             }, test_guild);
 
             spdlog::info("Discord commands registered");
@@ -144,7 +147,7 @@ int main(int argc, char const *argv[]) {
         }
     });
 
-    bot.on_slashcommand([](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&alerter](const dpp::slashcommand_t &event) {
         spdlog::info(std::format("Command received: {} from {}", event.command.get_command_name(), event.command.usr.username));
         if (event.command.get_command_name() == "listchores") {
             list_chores(event);
