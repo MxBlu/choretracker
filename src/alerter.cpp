@@ -32,8 +32,10 @@ void Alerter::run_alerts() {
    for (auto chore : chores) {
       auto next_expected_time = std::chrono::sys_days(chore.last_completed) + std::chrono::days(chore.frequency_days);
 
-      if (next_expected_time <= now) {
-         spdlog::debug(std::format("Should alert: name=\"{}\" last_completed=\"{}\" deadline=\"{}\"", chore.name, chore.last_completed, next_expected_time));
+      if (next_expected_time == now) {
+         bot.direct_message_create(chore.owner.user_id, dpp::message(std::format("{} should be done!", chore.name)));
+      } else if (next_expected_time < now) {
+         bot.direct_message_create(chore.owner.user_id, dpp::message(std::format("{} should have been done on {}!", chore.name, next_expected_time)));
       } else {
          spdlog::debug(std::format("Not alerting: name=\"{}\" last_completed=\"{}\" deadline=\"{}\"", chore.name, chore.last_completed, next_expected_time));
       }
