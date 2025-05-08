@@ -38,7 +38,8 @@ void add_chore(const dpp::slashcommand_t &event) {
     auto chore_name = std::get<std::string>(event.get_parameter("name"));
     auto chore_frequency = std::get<int64_t>(event.get_parameter("frequency"));
 
-    db.add_chore({ user_id, guild_id }, { 
+    db.add_chore({ 
+        { user_id, guild_id },
         chore_name, 
         static_cast<int>(chore_frequency), 
         get_today_as_ymd() 
@@ -61,6 +62,16 @@ void delete_chore(const dpp::slashcommand_t &event) {
     }
 }
 
+void reset_chore(const dpp::slashcommand_t &event) {
+    auto user_id = event.command.usr.id;
+    auto guild_id = event.command.guild_id;
+
+    auto chore_name = std::get<std::string>(event.get_parameter("name"));
+
+    db.reset_chore({ user_id, guild_id }, chore_name);
+    event.reply(dpp::message("Chore reset").set_flags(dpp::m_ephemeral));
+}
+
 int main(int argc, char const *argv[]) {
     // Ensure config file is loaded
     bool config_was_loaded = config_load_file();
@@ -80,6 +91,8 @@ int main(int argc, char const *argv[]) {
     dpp::cluster bot(bot_token.value());
 
     bot.on_ready([&bot](const dpp::ready_t &event) {
+        spdlog::info("Discord connected");
+
         // Register commands
         if (dpp::run_once<struct register_bot_commands>()) {
             dpp::slashcommand list_chores_command("listchores", "List currently tracked chores", bot.me.id);
@@ -93,22 +106,48 @@ int main(int argc, char const *argv[]) {
             dpp::slashcommand delete_chores_command("deletechore", "Delete a chore", bot.me.id);
             delete_chores_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
+                
+            dpp::slashcommand reset_chore_command("resetchore", "Reset a timer on a chore", bot.me.id);
+            reset_chore_command.add_option(
+                dpp::command_option(dpp::co_string, "name", "Name of chore", true));
+
+            dpp::slashcommand run_alerts_command("runalerts", "Run alerts for chores", bot.me.id);
 
             auto test_guild = config_get_str(CONFIG_TEST_GUILD).value();
             bot.guild_bulk_command_create({
-                list_chores_command, add_chores_command, delete_chores_command
+                list_chores_command, add_chores_command, delete_chores_command, reset_chore_command
             }, test_guild);
+
+            spdlog::info("Discord commands registered");
+        }
+
+    bot.on_log([](const dpp::log_t &log) {
+        switch (log.severity) {
+            case dpp::ll_info:
+                spdlog::info("Discord: " + log.message);
+                break;
+            case dpp::ll_warning:
+                spdlog::warn("Discord: " + log.message);
+                break;
+            case dpp::ll_error:
+            case dpp::ll_critical:
+                spdlog::error("Discord: " + log.message);
+                break;
         }
     });
 
     bot.on_slashcommand([](const dpp::slashcommand_t &event) {
-        spdlog::info("Command received: " + event.command.get_command_name());
+        spdlog::info(std::format("Command received: {} from {}", event.command.get_command_name(), event.command.usr.username));
         if (event.command.get_command_name() == "listchores") {
             list_chores(event);
         } else if (event.command.get_command_name() == "addchore") {
             add_chore(event);
         } else if (event.command.get_command_name() == "deletechore") {
             delete_chore(event);
+        } else if (event.command.get_command_name() == "resetchore") {
+            reset_chore(event);
+        } else {
+            spdlog::error("Unknown command received");
         }
     });
 

@@ -29,6 +29,7 @@ struct std::hash<user_identifier> {
 };
 
 struct chore_definition {
+    user_identifier owner;
     std::string name;
     int frequency_days;
     std::chrono::year_month_day last_completed;
@@ -36,12 +37,14 @@ struct chore_definition {
 
 class Database {
     public:
-        Database();
+        Database() {};
 
-        std::span<chore_definition> list_chores_by_user(user_identifier user_identifier);
-        void add_chore(user_identifier user_identifier, chore_definition chore);
+        std::span<chore_definition> list_all_chores();
+        std::vector<chore_definition> list_chores_by_user(user_identifier user_identifier);
+        void add_chore(chore_definition chore);
         bool delete_chore(user_identifier user_identifier, std::string chore_name);
+        void reset_chore(user_identifier user_identifier, std::string chore_name);
     private:
-        std::unordered_map<user_identifier, std::vector<chore_definition>> db;
+        std::vector<chore_definition> db;
         std::mutex db_mutex;
 };
