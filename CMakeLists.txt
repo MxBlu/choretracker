@@ -6,6 +6,10 @@ add_executable(choretracker ${coresrc})
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+find_package(Threads REQUIRED)
+target_link_libraries(choretracker PRIVATE Threads::Threads)
 
 find_package(OpenSSL REQUIRED)
 target_link_libraries(choretracker PRIVATE OpenSSL::SSL)

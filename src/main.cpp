@@ -7,11 +7,13 @@
 #include <dpp/nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
+#include "choretracker/alerter.h"
 #include "choretracker/config.h"
 #include "choretracker/db.h"
 #include "choretracker/utils.hpp"
 
 static Database db;
+static Alerter alerter(db);
 
 void list_chores(const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
@@ -121,6 +123,12 @@ int main(int argc, char const *argv[]) {
             spdlog::info("Discord commands registered");
         }
 
+        // Start alerting thread
+        if (dpp::run_once<struct start_alert_threads>()) {
+            alerter.begin();
+        }
+    });
+
     bot.on_log([](const dpp::log_t &log) {
         switch (log.severity) {
             case dpp::ll_info:
@@ -146,6 +154,8 @@ int main(int argc, char const *argv[]) {
             delete_chore(event);
         } else if (event.command.get_command_name() == "resetchore") {
             reset_chore(event);
+        } else if (event.command.get_command_name() == "runalerts") {
+            alerter.run_alerts();
         } else {
             spdlog::error("Unknown command received");
         }
