@@ -12,7 +12,9 @@
          "args": [],
          "stopAtEntry": false,
          "cwd": "${workspaceFolder}",
-         "environment": [],
+         "environment": [
+            { "name": "SPDLOG_LEVEL", "value": "debug" }
+         ],
          "console": "externalTerminal"
       }
    ]

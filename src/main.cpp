@@ -17,9 +17,8 @@ static Database db;
 
 void list_chores(const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
-    auto guild_id = event.command.guild_id;
 
-    auto chores = db.list_chores_by_user({ user_id, guild_id });
+    auto chores = db.list_chores_by_user(user_id);
     if (chores.size() > 0) {
         std::string chore_list = "Chores: \n";
         for (auto chore : chores) {
@@ -41,7 +40,7 @@ void add_chore(const dpp::slashcommand_t &event) {
     auto chore_frequency = std::get<int64_t>(event.get_parameter("frequency"));
 
     db.add_chore({ 
-        { user_id, guild_id },
+        user_id,
         chore_name, 
         static_cast<int>(chore_frequency), 
         get_today_as_ymd() 
@@ -52,11 +51,10 @@ void add_chore(const dpp::slashcommand_t &event) {
 
 void delete_chore(const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
-    auto guild_id = event.command.guild_id;
 
     auto chore_name = std::get<std::string>(event.get_parameter("name"));
 
-    bool deleted = db.delete_chore({ user_id, guild_id }, chore_name);
+    bool deleted = db.delete_chore(user_id, chore_name);
     if (deleted) {
         event.reply(dpp::message("Chore deleted").set_flags(dpp::m_ephemeral));
     } else {
@@ -66,11 +64,10 @@ void delete_chore(const dpp::slashcommand_t &event) {
 
 void reset_chore(const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
-    auto guild_id = event.command.guild_id;
 
     auto chore_name = std::get<std::string>(event.get_parameter("name"));
 
-    db.reset_chore({ user_id, guild_id }, chore_name);
+    db.reset_chore(user_id, chore_name);
     event.reply(dpp::message("Chore reset").set_flags(dpp::m_ephemeral));
 }
 
@@ -118,10 +115,15 @@ int main(int argc, char const *argv[]) {
 
             dpp::slashcommand run_alerts_command("runalerts", "Run alerts for chores", bot.me.id);
 
-            auto test_guild = config_get_str(CONFIG_TEST_GUILD).value();
+            auto test_guild = config_get_str(CONFIG_TEST_GUILD);
+            if (!test_guild.has_value()) {
+                spdlog::error("Test guild not defined, exiting");
+                exit(1);
+            }
+
             bot.guild_bulk_command_create({
                 list_chores_command, add_chores_command, delete_chores_command, reset_chore_command, run_alerts_command
-            }, test_guild);
+            }, test_guild.value());
 
             spdlog::info("Discord commands registered");
         }
