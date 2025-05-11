@@ -16,6 +16,7 @@ COPY include include
 COPY CMakeLists.txt .
 RUN cmake -DVCPKG_TARGET_TRIPLET="x64-linux-release" -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_FLAGS="-static-libstdc++" -B build .
 RUN cmake --build build --config Release --target choretracker
+RUN strip build/choretracker
 
 FROM ubuntu as runtime
 
