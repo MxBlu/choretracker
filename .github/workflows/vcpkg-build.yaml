@@ -2,10 +2,6 @@ name: Build with vcpkg caching
 
 on:
   push:
-    tags:
-    - '*'
-    branches:
-    - 'test-gh'
 
 jobs:
   build:
