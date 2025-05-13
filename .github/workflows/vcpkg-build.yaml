@@ -18,6 +18,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
+      DOCKER_BUILD_SUMMARY: false
     
     steps:
     - name: Checkout
@@ -50,14 +51,12 @@ jobs:
           vcpkg-${{ runner.os }}-v0.5-
 
     - name: Inject vcpkg-cache
-      uses: reproducible-containers/buildkit-cache-dance@v3
+      uses: reproducible-containers/buildkit-cache-dance@v2.1.4
       with:
-        cache-map: |
-          {
-            "vcpkg-cache": "/vcpkg-cache"
-          }
-        dockerfile: 'Dockerfile.gha'
+        cache-source: vcpkg-cache
+        cache-target: /vcpkg-cache
         skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+        
     
     # Build Docker image with vcpkg cache mounted
     - name: Build Docker image
