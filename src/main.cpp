@@ -98,34 +98,41 @@ int main(int argc, char const *argv[]) {
         // Register commands
         if (dpp::run_once<struct register_bot_commands>()) {
             dpp::slashcommand list_chores_command("listchores", "List currently tracked chores", bot.me.id);
+            list_chores_command.set_interaction_contexts({ dpp::itc_private_channel });
 
             dpp::slashcommand add_chores_command("addchore", "Add a new chore", bot.me.id);
+            add_chores_command.set_interaction_contexts({ dpp::itc_private_channel });
             add_chores_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
             add_chores_command.add_option(
                 dpp::command_option(dpp::co_integer, "frequency", "Frequency in days", true));
             
             dpp::slashcommand delete_chores_command("deletechore", "Delete a chore", bot.me.id);
+            delete_chores_command.set_interaction_contexts({ dpp::itc_private_channel });
             delete_chores_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
                 
             dpp::slashcommand reset_chore_command("resetchore", "Reset a timer on a chore", bot.me.id);
+            reset_chore_command.set_interaction_contexts({ dpp::itc_private_channel });
             reset_chore_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
 
-            dpp::slashcommand run_alerts_command("runalerts", "Run alerts for chores", bot.me.id);
-
             auto test_guild = config_get_str(CONFIG_TEST_GUILD);
-            if (!test_guild.has_value()) {
-                spdlog::error("Test guild not defined, exiting");
-                exit(1);
+            if (test_guild.has_value()) {
+                // Command only available when testing in a guild
+                dpp::slashcommand run_alerts_command("runalerts", "Run alerts for chores", bot.me.id);
+
+                bot.guild_bulk_command_create({
+                    list_chores_command, add_chores_command, delete_chores_command, reset_chore_command, run_alerts_command
+                }, test_guild.value());
+                spdlog::info(std::format("Discord commands registered to guild: guildId={}", test_guild.value()));
+            } else {
+                bot.global_bulk_command_create({
+                    list_chores_command, add_chores_command, delete_chores_command, reset_chore_command
+                });
+                spdlog::info("Discord commands registered globally");
             }
 
-            bot.guild_bulk_command_create({
-                list_chores_command, add_chores_command, delete_chores_command, reset_chore_command, run_alerts_command
-            }, test_guild.value());
-
-            spdlog::info("Discord commands registered");
         }
 
         // Start alerting thread
