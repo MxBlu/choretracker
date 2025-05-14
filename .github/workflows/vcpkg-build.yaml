@@ -42,9 +42,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vcpkg-cache
-        key: vcpkg-${{ runner.os }}-v0.5-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
+        key: vcpkg-${{ runner.os }}-v0.6-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
         restore-keys: |
-          vcpkg-${{ runner.os }}-v0.5-
+          vcpkg-${{ runner.os }}-v0.6-
 
     - name: Inject vcpkg-cache
       uses: reproducible-containers/buildkit-cache-dance@v2.1.4
