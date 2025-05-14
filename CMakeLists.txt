@@ -22,3 +22,9 @@ find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(choretracker PRIVATE spdlog::spdlog)
 
 target_include_directories(choretracker PRIVATE "include")
+
+IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Debug mode: Enabling AddressSanitizer and other debug tools")
+    target_compile_options(choretracker PRIVATE -fsanitize=address -fno-omit-frame-pointer -g)
+    target_link_options(choretracker PRIVATE -fsanitize=address)
+ENDIF()
