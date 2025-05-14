@@ -153,6 +153,8 @@ int main(int argc, char const *argv[]) {
             case dpp::ll_critical:
                 spdlog::error("Discord: " + log.message);
                 break;
+            default:
+                break;
         }
     });
 
