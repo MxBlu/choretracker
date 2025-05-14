@@ -28,6 +28,6 @@ COPY include include
 COPY CMakeLists.txt .
 COPY vcpkg.json vcpkg-configuration.json .
 RUN --mount=type=cache,target=/vcpkg-cache cmake -DVCPKG_TARGET_TRIPLET="x64-linux" -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug -B build .
-RUN --mount=type=cache,target=/vcpkg-cache cmake --build build --config Debug --target choretracker
+RUN --mount=type=cache,target=/vcpkg-cache cmake --build build --config Debug --target choretracker -v
 
 CMD [ "/src/build/choretracker" ]

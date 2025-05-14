@@ -28,7 +28,7 @@ COPY include include
 COPY CMakeLists.txt .
 COPY vcpkg.json vcpkg-configuration.json .
 RUN --mount=type=cache,target=/vcpkg-cache cmake -DVCPKG_TARGET_TRIPLET="x64-linux-release" -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake -B build .
-RUN --mount=type=cache,target=/vcpkg-cache cmake --build build --config Release --target choretracker
+RUN --mount=type=cache,target=/vcpkg-cache cmake --build build --config Release --target choretracker -v
 RUN strip build/choretracker
 
 FROM ubuntu AS runtime
