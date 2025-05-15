@@ -35,9 +35,9 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=sha
-          type=raw,value=debug
+        flavor: |
+          latest=false
+          suffix=-debug
     
     # Restore cache from previous runs
     - name: Use cache for vcpkg
