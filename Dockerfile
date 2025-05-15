@@ -29,8 +29,7 @@ COPY triplets triplets
 COPY CMakeLists.txt .
 COPY vcpkg.json vcpkg-configuration.json .
 RUN --mount=type=cache,target=/vcpkg-cache cmake \
-      -DVCPKG_TARGET_TRIPLET="x64-linux" \
-      -DVCPKG_BUILD_TYPE="release" \
+      -DVCPKG_TARGET_TRIPLET="x64-linux-release" \
       -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake \
       -DCMAKE_BUILD_TYPE=Release \
       -B build  .
@@ -39,7 +38,10 @@ RUN strip build/choretracker
 
 FROM ubuntu AS runtime
 
-COPY --from=build /src/build/vcpkg_installed/x64-linux/lib/* /usr/lib/
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y tzdata && \
+      apt clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /src/build/vcpkg_installed/x64-linux-release/lib/* /usr/lib/
 COPY --from=build /src/build/choretracker /app/choretracker
 
 CMD [ "/app/choretracker" ]
