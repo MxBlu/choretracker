@@ -29,7 +29,7 @@ COPY triplets triplets
 COPY CMakeLists.txt .
 COPY vcpkg.json vcpkg-configuration.json .
 RUN --mount=type=cache,target=/vcpkg-cache cmake \
-      -DVCPKG_TARGET_TRIPLET="x64-linux-dynamic" \
+      -DVCPKG_TARGET_TRIPLET="x64-linux" \
       -DVCPKG_BUILD_TYPE="release" \
       -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake \
       -DCMAKE_BUILD_TYPE=Release \
