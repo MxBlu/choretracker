@@ -39,7 +39,7 @@ RUN strip build/choretracker
 
 FROM ubuntu AS runtime
 
-COPY --from=build /src/build/vcpkg_installed/x64-linux-dynamic/lib/* /usr/lib/
+COPY --from=build /src/build/vcpkg_installed/x64-linux/lib/* /usr/lib/
 COPY --from=build /src/build/choretracker /app/choretracker
 
 CMD [ "/app/choretracker" ]
