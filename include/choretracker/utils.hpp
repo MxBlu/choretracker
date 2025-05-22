@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <string>
+#include <spdlog/spdlog.h>
 
 /// @brief Convert given string to uppercase
 /// @param str 
