@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 
+#include <spdlog/cfg/helpers.h>
 #include <dpp/nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -17,6 +18,12 @@ bool config_load_file() {
     std::ifstream config_file("config.json");
     if (config_file.good()) {
         config_json = json::parse(config_file);
+
+        // While we're here, also try loading spdlog levels if there aren't any loaded from env
+        if (config_json.contains("spdlog_level") && std::getenv("SPDLOG_LEVEL") == nullptr) {
+            spdlog::cfg::helpers::load_levels(config_json["spdlog_level"]);
+        }
+
         return true;
     } else {
         return false;
