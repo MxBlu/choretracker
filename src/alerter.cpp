@@ -7,7 +7,7 @@
 
 auto get_next_alert_time() {
    const auto now = std::chrono::system_clock::now();
-   const auto zone = std::chrono::current_zone();
+   const auto zone = get_current_tz();
    const auto local_now = zone->to_local(now);
 
    // Run alerts at 6:00
@@ -43,11 +43,11 @@ void Alerter::run_alerts() {
 }
 
 void Alerter::thread_task() {
-   spdlog::debug(std::format("Current TZ in alerter thread: {}", std::chrono::current_zone()->name()));
+   spdlog::debug(std::format("Current TZ in alerter thread: {}", get_current_tz()->name()));
 
    while (true) {
       auto time_to_sleep_until = get_next_alert_time();
-      spdlog::debug(std::format("Sleeping until {}", std::chrono::current_zone()->to_local(time_to_sleep_until)));
+      spdlog::debug(std::format("Sleeping until {}", get_current_tz()->to_local(time_to_sleep_until)));
       std::this_thread::sleep_until(time_to_sleep_until);
 
       run_alerts();

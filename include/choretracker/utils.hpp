@@ -20,3 +20,15 @@ inline std::chrono::year_month_day get_today_as_ymd() {
    const auto local_now = std::chrono::current_zone()->to_local(now);
    return std::chrono::year_month_day{ std::chrono::floor<std::chrono::days>(local_now) };
 }
+
+inline auto get_current_tz() {
+   auto name = std::getenv("TZ");
+   if (name != nullptr) {
+      try {
+         return std::chrono::locate_zone(name);
+      } catch (std::runtime_error&) {
+      }
+   }
+
+   return std::chrono::current_zone(); // fall back to current_zone()
+}
