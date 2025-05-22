@@ -21,14 +21,20 @@ inline std::chrono::year_month_day get_today_as_ymd() {
    return std::chrono::year_month_day{ std::chrono::floor<std::chrono::days>(local_now) };
 }
 
+/// @brief Get the current time zone, respecting the TZ env var if set
+/// @return Current time zone
 inline auto get_current_tz() {
+   // First try the env var if present
    auto name = std::getenv("TZ");
    if (name != nullptr) {
       try {
          return std::chrono::locate_zone(name);
       } catch (std::runtime_error&) {
+         // Just log on an error, not a catastrophic issue
+         spdlog::warn("Invalid TZ env var value, defaulting to the host's time zone");
       }
    }
 
-   return std::chrono::current_zone(); // fall back to current_zone()
+   // Fallback to using chrono::current_zone(), which is likely based on /etc/localtime
+   return std::chrono::current_zone();
 }
