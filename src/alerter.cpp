@@ -43,6 +43,8 @@ void Alerter::run_alerts() {
 }
 
 void Alerter::thread_task() {
+   spdlog::debug(std::format("Current TZ in alerter thread: {}", std::chrono::current_zone()->name()));
+
    while (true) {
       auto time_to_sleep_until = get_next_alert_time();
       spdlog::debug(std::format("Sleeping until {}", std::chrono::current_zone()->to_local(time_to_sleep_until)));
