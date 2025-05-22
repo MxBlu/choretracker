@@ -108,7 +108,12 @@
         "format": "cpp",
         "ranges": "cpp",
         "source_location": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "memory_resource": "cpp",
+        "random": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "cinttypes": "cpp"
     },
     "github.copilot.enable": {
         "*": false,
