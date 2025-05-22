@@ -5,6 +5,7 @@
 
 #define CONFIG_BOT_TOKEN "bot_token"
 #define CONFIG_TEST_GUILD "test_guild"
+#define CONFIG_REGISTER_COMMANDS "register_commands"
 
 bool config_load_file();
 std::optional<std::string> config_get_str(std::string property);
