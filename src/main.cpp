@@ -20,7 +20,7 @@ void list_chores(Database &db, const dpp::slashcommand_t &event) {
     if (chores.size() > 0) {
         std::string chore_list = "Chores: \n";
         for (auto chore : chores) {
-            chore_list += std::format("{} - Every {} days - Last performed {}", 
+            chore_list += std::format("{} - Every {} days - Last performed {}\n", 
                 chore.name, chore.frequency_days, chore.last_completed);
         }
         

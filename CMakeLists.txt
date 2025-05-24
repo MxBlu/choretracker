@@ -4,8 +4,7 @@ project(choretracker)
 aux_source_directory("src" coresrc)
 add_executable(choretracker ${coresrc})
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+target_compile_features(choretracker PRIVATE cxx_std_23)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 find_package(Threads REQUIRED)

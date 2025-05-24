@@ -37,7 +37,7 @@ struct chore_definition {
             chore.owner_user_id = dpp::snowflake(bson_to_string(doc["owner_user_id"]));
             chore.name = bson_to_string(doc["name"]);
             chore.frequency_days = doc["frequency_days"].get_int32().value;
-            chore.last_completed = parse_ymd(bson_to_string(doc["last_completed"]));
+            chore.last_completed = parse_ymd(bson_to_string(doc["last_completed"])).value();
 
             return chore;
         } catch (const std::exception&) {
