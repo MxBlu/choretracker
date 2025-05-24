@@ -21,6 +21,12 @@ target_link_libraries(choretracker PRIVATE dpp::dpp)
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(choretracker PRIVATE spdlog::spdlog)
 
+find_package(bsoncxx CONFIG REQUIRED)
+find_package(mongocxx CONFIG REQUIRED)
+target_link_libraries(choretracker PRIVATE 
+    $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>
+    $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>)
+
 target_include_directories(choretracker PRIVATE "include")
 
 IF (CMAKE_BUILD_TYPE STREQUAL "Debug")

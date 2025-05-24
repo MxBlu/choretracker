@@ -2,6 +2,7 @@
   "dependencies": [
     "dpp",
     "openssl",
-    "spdlog"
+    "spdlog",
+    "mongo-cxx-driver"
   ]
 }

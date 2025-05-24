@@ -13,9 +13,7 @@
 #include "choretracker/db.h"
 #include "choretracker/utils.hpp"
 
-static Database db;
-
-void list_chores(const dpp::slashcommand_t &event) {
+void list_chores(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
     auto chores = db.list_chores_by_user(user_id);
@@ -32,7 +30,7 @@ void list_chores(const dpp::slashcommand_t &event) {
     }
 }
 
-void add_chore(const dpp::slashcommand_t &event) {
+void add_chore(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
     auto guild_id = event.command.guild_id;
 
@@ -49,7 +47,7 @@ void add_chore(const dpp::slashcommand_t &event) {
     event.reply(dpp::message("Chore added").set_flags(dpp::m_ephemeral));
 }
 
-void delete_chore(const dpp::slashcommand_t &event) {
+void delete_chore(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
     auto chore_name = std::get<std::string>(event.get_parameter("name"));
@@ -62,7 +60,7 @@ void delete_chore(const dpp::slashcommand_t &event) {
     }
 }
 
-void reset_chore(const dpp::slashcommand_t &event) {
+void reset_chore(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
     auto chore_name = std::get<std::string>(event.get_parameter("name"));
@@ -89,7 +87,16 @@ int main(int argc, char const *argv[]) {
         exit(1);
     }
 
+    auto db_connection_string = config_get_str(CONFIG_DB_CONNECTION);
+    if (!db_connection_string.has_value()) {
+        spdlog::error("DB connection string not defined, exiting");
+        exit(1);
+    }
+
+    auto db_name = config_get_str(CONFIG_DB_NAME);
+
     dpp::cluster bot(bot_token.value());
+    Database db(db_connection_string.value(), db_name.value_or(DEFAULT_DB_NAME));
     Alerter alerter(db, bot);
 
     bot.on_ready([&bot, &alerter](const dpp::ready_t &event) {
@@ -161,16 +168,16 @@ int main(int argc, char const *argv[]) {
         }
     });
 
-    bot.on_slashcommand([&alerter](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&alerter, &db](const dpp::slashcommand_t &event) {
         spdlog::info(std::format("Command received: {} from {}", event.command.get_command_name(), event.command.usr.username));
         if (event.command.get_command_name() == "listchores") {
-            list_chores(event);
+            list_chores(db, event);
         } else if (event.command.get_command_name() == "addchore") {
-            add_chore(event);
+            add_chore(db, event);
         } else if (event.command.get_command_name() == "deletechore") {
-            delete_chore(event);
+            delete_chore(db, event);
         } else if (event.command.get_command_name() == "resetchore") {
-            reset_chore(event);
+            reset_chore(db, event);
         } else if (event.command.get_command_name() == "runalerts") {
             alerter.run_alerts();
         } else {

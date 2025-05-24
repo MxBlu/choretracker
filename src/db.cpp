@@ -1,47 +1,87 @@
-#include <ranges>
+#include <format>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <spdlog/spdlog.h>
 
 #include "choretracker/db.h"
 #include "choretracker/utils.hpp"
 
-std::span<chore_definition> Database::list_all_chores() {
-   return db;
-}
+using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::make_document;
 
-std::vector<chore_definition> Database::list_chores_by_user(dpp::snowflake user_id) {
-   std::lock_guard<std::mutex> lock(db_mutex);
+#define CHORE_COL "chores"
 
-   std::vector<chore_definition> user_chores;
-   for (auto chore : db | std::views::filter([user_id](chore_definition &cd) { return cd.owner_user_id == user_id; })) {
-      user_chores.push_back(chore);
+std::vector<chore_definition> Database::list_all_chores() {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto cursor = db[CHORE_COL].find({});
+
+   std::vector<chore_definition> chores;
+   for (auto&& doc : cursor) {
+      auto def = chore_definition::from_bson(doc);
+      if (def.has_value()) {
+         chores.emplace_back(def.value());
+      } else {
+         spdlog::warn(std::format("Invalid chore document in db: id='{}'", doc["_id"].get_oid().value.to_string()));
+      }
    }
 
-   return user_chores;
+   return chores;
 }
 
-void Database::add_chore(chore_definition chore) {
-   std::lock_guard<std::mutex> lock(db_mutex);
+std::vector<chore_definition> Database::list_chores_by_user(const dpp::snowflake& user_id) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
 
-   db.emplace_back(chore);
-}
+   auto cursor = db[CHORE_COL].find(make_document(
+      kvp("owner_user_id", user_id.str())
+   ));
 
-bool Database::delete_chore(dpp::snowflake user_id, std::string chore_name) {
-   std::lock_guard<std::mutex> lock(db_mutex);
-
-   auto deleted_count = std::erase_if(db, [user_id, chore_name](const chore_definition chore) { 
-      return chore.owner_user_id == user_id && chore.name == chore_name; 
-   });
-
-   return deleted_count > 0;
-}
-
-void Database::reset_chore(dpp::snowflake user_id, std::string chore_name) {
-   std::lock_guard<std::mutex> lock(db_mutex);
-
-   auto chore = std::find_if(db.begin(), db.end(), [user_id, chore_name](const chore_definition& chore) {
-      return chore.owner_user_id == user_id && chore.name == chore_name;
-   });
-
-   if (chore != db.end()) {
-      chore[0].last_completed = get_today_as_ymd();
+   std::vector<chore_definition> chores;
+   for (auto&& doc : cursor) {
+      auto def = chore_definition::from_bson(doc);
+      if (def.has_value()) {
+         chores.emplace_back(def.value());
+      } else {
+         spdlog::warn(std::format("Invalid chore document in db: id='{}'", doc["_id"].get_oid().value.to_string()));
+      }
    }
+
+   return chores;
+}
+
+bool Database::add_chore(const chore_definition& chore) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto doc = chore.to_bson();
+   auto result = db[CHORE_COL].insert_one(std::move(doc));
+
+   return result.has_value() && result.value().inserted_id().type() == bsoncxx::type::k_oid ;
+}
+
+bool Database::delete_chore(const dpp::snowflake& user_id, const std::string& chore_name) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto result = db[CHORE_COL].delete_one(make_document(
+      kvp("owner_user_id", user_id.str()),
+      kvp("name", chore_name)
+   ));
+
+   return result.has_value() && result.value().deleted_count() > 0;
+}
+
+bool Database::reset_chore(const dpp::snowflake& user_id, const std::string& chore_name) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto result = db[CHORE_COL].update_one(make_document(
+      kvp("owner_user_id", user_id.str()),
+      kvp("name", chore_name)
+   ), make_document(
+      kvp("last_completed", ymd_to_string(get_today_as_ymd()))
+   ));
+
+   return result.has_value() && result.value().modified_count() > 0;
 }

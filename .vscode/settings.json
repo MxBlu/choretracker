@@ -113,7 +113,8 @@
         "random": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__config_site": "cpp"
     },
     "github.copilot.enable": {
         "*": false,
