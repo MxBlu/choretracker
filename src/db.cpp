@@ -80,7 +80,9 @@ bool Database::reset_chore(const dpp::snowflake& user_id, const std::string& cho
       kvp("owner_user_id", user_id.str()),
       kvp("name", chore_name)
    ), make_document(
-      kvp("last_completed", ymd_to_string(get_today_as_ymd()))
+      kvp("$set", make_document(
+         kvp("last_completed", ymd_to_string(get_today_as_ymd()))
+      ))
    ));
 
    return result.has_value() && result.value().modified_count() > 0;
