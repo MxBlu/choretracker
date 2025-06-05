@@ -42,9 +42,9 @@ int main(int argc, char const *argv[]) {
         exit(1);
     }
 
-    auto db_name = config_get_str(CONFIG_DB_NAME);
+    auto db_name = config_get_str(CONFIG_DB_NAME).value_or(DEFAULT_DB_NAME);
 
-    Database db(db_connection_string.value(), db_name.value_or(DEFAULT_DB_NAME));
+    Database db(db_connection_string.value(), db_name);
     Bot bot(bot_token.value(), db);
 
     // Create signal handler to correctly shut down threads

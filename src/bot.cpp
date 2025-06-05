@@ -21,19 +21,19 @@ void Bot::init() {
             list_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
 
             dpp::slashcommand add_chores_command("addchore", "Add a new chore", cluster.me.id);
-            list_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            add_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             add_chores_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
             add_chores_command.add_option(
                 dpp::command_option(dpp::co_integer, "frequency", "Frequency in days", true));
             
             dpp::slashcommand delete_chores_command("deletechore", "Delete a chore", cluster.me.id);
-            list_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            delete_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             delete_chores_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
-                
+            
             dpp::slashcommand reset_chore_command("resetchore", "Reset a timer on a chore", cluster.me.id);
-            list_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            reset_chore_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             reset_chore_command.add_option(
                 dpp::command_option(dpp::co_string, "name", "Name of chore", true));
 
