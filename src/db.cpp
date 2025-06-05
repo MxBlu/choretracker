@@ -72,7 +72,7 @@ bool Database::delete_chore(const dpp::snowflake& user_id, const std::string& ch
    return result.has_value() && result.value().deleted_count() > 0;
 }
 
-bool Database::reset_chore(const dpp::snowflake& user_id, const std::string& chore_name) {
+bool Database::complete_chore(const dpp::snowflake& user_id, const std::string& chore_name) {
    auto client = pool.acquire();
    auto db = client[db_name];
 

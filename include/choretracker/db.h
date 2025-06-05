@@ -54,7 +54,7 @@ class Database {
         std::vector<chore_definition> list_chores_by_user(const dpp::snowflake& user_id);
         bool add_chore(const chore_definition& chore);
         bool delete_chore(const dpp::snowflake& user_id, const std::string& chore_name);
-        bool reset_chore(const dpp::snowflake& user_id, const std::string& chore_name);
+        bool complete_chore(const dpp::snowflake& user_id, const std::string& chore_name);
     private:
         mongocxx::instance instance;
         mongocxx::pool pool;
