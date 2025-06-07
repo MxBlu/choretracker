@@ -490,11 +490,12 @@
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
 
-                    return await response.json();
+                    const text = await response.text();
+                    return text.length > 0 ? JSON.parse(text) : null;
                 } catch (error) {
                     console.error('API request failed:', error);
                     this.showNotification('Network error occurred', 'error');
-                    return null;
+                    throw error;
                 }
             }
 
