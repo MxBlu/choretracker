@@ -2,12 +2,35 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>
+#include <format>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <stdexcept>
 #include <spdlog/spdlog.h>
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/string/to_string.hpp>
 #include <bsoncxx/types.hpp>
+
+#define STRINGIFY_NX(x) #x
+#define STRINGIFY(x) STRINGIFY_NX(x)
+
+/// @brief Convert a hex digit character to its integer value
+/// @param hex Char
+/// @return Integer
+inline constexpr int hexDigitToInt(char hex) noexcept {
+   if (hex >= '0' && hex <= '9') {
+      return hex - '0';
+   }
+   if (hex >= 'A' && hex <= 'F') {
+      return hex - 'A' + 10;
+   }
+   if (hex >= 'a' && hex <= 'f') {
+      return hex - 'a' + 10;
+   }
+   return 0; // Should not reach here if input is validated
+}
 
 /// @brief Convert given string to uppercase
 /// @param str 
@@ -78,4 +101,45 @@ inline auto ymd_to_string(const std::chrono::year_month_day& ymd) {
 /// @return String value
 inline auto bson_to_string(const bsoncxx::document::element& element) {
    return bsoncxx::string::to_string(element.get_string().value);
+}
+
+inline std::string uri_decode(std::string_view encoded) {
+   std::string result;
+   result.reserve(encoded.size()); // Reserve space for efficiency
+   
+   for (size_t i = 0; i < encoded.size(); ++i) {
+      char c = encoded[i];
+      
+      if (c == '%') {
+         // Check if we have enough characters for a percent-encoded sequence
+         if (i + 2 >= encoded.size()) {
+            throw std::invalid_argument("Invalid percent-encoded sequence: incomplete");
+         }
+         
+         // Get the two hex digits
+         char hex1 = encoded[i + 1];
+         char hex2 = encoded[i + 2];
+         
+         if (!std::isxdigit(hex1) || !std::isxdigit(hex2)) {
+            throw std::invalid_argument(
+               std::format("Invalid percent-encoded sequence: %{}{}", hex1, hex2)
+            );
+         }
+         
+         // Convert hex digits to byte value
+         int value = (hexDigitToInt(hex1) << 4) | hexDigitToInt(hex2);
+         result += static_cast<char>(value);
+         
+         // Skip the two hex digits
+         i += 2;
+      }  else if (c == '+') {
+         // In application/x-www-form-urlencoded, '+' represents space
+         result += ' ';
+      } else {
+         // Regular character
+         result += c;
+      }
+   }
+   
+   return result;
 }

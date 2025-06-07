@@ -26,7 +26,23 @@ target_link_libraries(choretracker PRIVATE
     $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>
     $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>)
 
+find_package(httplib CONFIG REQUIRED)
+target_link_libraries(choretracker PRIVATE httplib::httplib)
+
+find_package(Crow CONFIG REQUIRED)
+target_link_libraries(choretracker PRIVATE Crow::Crow asio::asio)
+
+find_package(stduuid CONFIG REQUIRED)
+target_link_libraries(choretracker PRIVATE stduuid)
+
 target_include_directories(choretracker PRIVATE "include")
+
+if(WIN32)
+    target_compile_definitions(choretracker PRIVATE
+        WIN32_LEAN_AND_MEAN
+        _WIN32_WINNT=0x0A00
+    )
+endif()
 
 IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Debug mode: Enabling AddressSanitizer and other debug tools")

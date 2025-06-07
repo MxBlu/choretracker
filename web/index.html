@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo h1 {
+            color: #5865F2;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #5865F2;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .login-card h1 {
+            color: #5865F2;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .login-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .discord-btn {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+            text-decoration: none;
+        }
+
+        .discord-btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .chore-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .add-chore-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .chores-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #5865F2;
+        }
+
+        .btn {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #4752C4;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chore-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chore-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #e1e5e9;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chore-item.due {
+            border-left-color: #ffa500;
+            background: linear-gradient(135deg, #fff7e6 0%, #fff 100%);
+        }
+
+        .chore-item.overdue {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #ffeef0 0%, #fff 100%);
+        }
+
+        .chore-item.completed-today {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f0fff4 0%, #fff 100%);
+        }
+
+        .chore-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .chore-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .chore-meta {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .chore-status {
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .status-due {
+            background: #ffa500;
+            color: white;
+        }
+
+        .status-overdue {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-good {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-upcoming {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .chore-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #888;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5865F2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <h1>📋 Chore Manager</h1>
+                </div>
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                    <span id="userName" class="user-name"></span>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Add Chore Card -->
+                <div class="add-chore-card">
+                    <h2 class="card-title">➕ Add New Chore</h2>
+                    <form id="addChoreForm">
+                        <div class="form-group">
+                            <label for="choreName">Chore Name</label>
+                            <input type="text" id="choreName" name="choreName" required placeholder="e.g., Exercise, Clean kitchen">
+                        </div>
+                        <div class="form-group">
+                            <label for="choreFrequency">Frequency (days)</label>
+                            <input type="number" id="choreFrequency" name="choreFrequency" required min="1" placeholder="e.g., 7 for weekly">
+                        </div>
+                        <button type="submit" class="btn">Add Chore</button>
+                    </form>
+                </div>
+
+                <!-- Chores List Card -->
+                <div class="chores-card">
+                    <h2 class="card-title">📝 Your Chores</h2>
+                    <div id="choresContainer" class="chore-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        class ChoreManager {
+            constructor() {
+                this.apiBase = '/api';
+                this.token = null;
+                this.user = null;
+                this.chores = [];
+                
+                this.init();
+            }
+
+            init() {
+                this.loadDashboard();
+
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('addChoreForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addChore();
+                });
+            }
+
+            async makeRequest(endpoint, options = {}) {
+                const url = `${this.apiBase}${endpoint}`;
+                const config = {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    credentials: 'same-origin',
+                    ...options
+                };
+
+                try {
+                    const response = await fetch(url, config);
+                    
+                    if (response.status === 401) {
+                        this.logout();
+                        return null;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('API request failed:', error);
+                    this.showNotification('Network error occurred', 'error');
+                    return null;
+                }
+            }
+
+            async loadDashboard() {
+                try {
+                    // Load user info
+                    const userInfo = await this.makeRequest('/user');
+                    if (!userInfo) return;
+
+                    this.user = userInfo;
+                    this.updateUserInfo();
+
+                    // Load chores
+                    await this.loadChores();
+
+                    this.showDashboard();
+                } catch (error) {
+                    console.error('Failed to load dashboard:', error);
+                    this.logout();
+                }
+            }
+
+            async loadChores() {
+                const response = await this.makeRequest('/chores');
+                if (response) {
+                    this.chores = response.chores || [];
+                    this.renderChores();
+                }
+            }
+
+            updateUserInfo() {
+                document.getElementById('userName').textContent = this.user.username;
+                
+                const avatarUrl = this.user.avatar 
+                    ? `https://cdn.discordapp.com/avatars/${this.user.user_id}/${this.user.avatar}.png`
+                    : `https://cdn.discordapp.com/embed/avatars/${parseInt(this.user.discord_id) % 5}.png`;
+                    
+                document.getElementById('userAvatar').src = avatarUrl;
+            }
+
+            renderChores() {
+                const container = document.getElementById('choresContainer');
+                
+                if (this.chores.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No chores yet!</h3>
+                            <p>Add your first chore to get started.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.chores.map(chore => this.renderChore(chore)).join('');
+            }
+
+            renderChore(chore) {
+                const today = new Date().toISOString().split('T')[0];
+                const isCompletedToday = chore.last_completed === today;
+                
+                let statusClass = '';
+                let statusText = '';
+                let statusBadgeClass = '';
+
+                if (isCompletedToday) {
+                    statusClass = 'completed-today';
+                    statusText = '✅ Completed today';
+                    statusBadgeClass = 'status-good';
+                } else if (chore.days_overdue >= 0) {
+                    if (chore.days_overdue > 0) {
+                        statusClass = 'overdue';
+                        statusText = `🔴 Overdue by ${chore.days_overdue} day${chore.days_overdue > 1 ? 's' : ''}`;
+                        statusBadgeClass = 'status-overdue';
+                    } else {
+                        statusClass = 'due';
+                        statusText = '🟡 Due today';
+                        statusBadgeClass = 'status-due';
+                    }
+                } else {
+                    const daysLeft = chore.frequency_days - chore.days_since_completed;
+                    statusText = `🟢 ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining`;
+                    statusBadgeClass = 'status-upcoming';
+                }
+
+                return `
+                    <div class="chore-item ${statusClass}">
+                        <div class="chore-header">
+                            <div>
+                                <div class="chore-name">${this.escapeHtml(chore.name)}</div>
+                                <div class="chore-meta">
+                                    <span>Every ${chore.frequency_days} day${chore.frequency_days > 1 ? 's' : ''}</span>
+                                    <span>Last completed: ${chore.last_completed}</span>
+                                </div>
+                            </div>
+                            <div class="chore-status ${statusBadgeClass}">
+                                ${statusText}
+                            </div>
+                        </div>
+                        <div class="chore-actions">
+                            <button class="btn btn-success btn-small" onclick="choreManager.completeChore('${this.escapeHtml(chore.name)}')" ${isCompletedToday ? 'disabled' : ''}>
+                                ${isCompletedToday ? 'Completed' : 'Complete'}
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="choreManager.deleteChore('${this.escapeHtml(chore.name)}')">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async addChore() {
+                const form = document.getElementById('addChoreForm');
+                const formData = new FormData(form);
+                
+                const choreData = {
+                    chore_name: formData.get('choreName').trim(),
+                    chore_frequency: parseInt(formData.get('choreFrequency'))
+                };
+
+                if (!choreData.chore_name || !choreData.chore_frequency || choreData.chore_frequency < 1) {
+                    this.showNotification('Please enter valid chore details', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await this.makeRequest('/chores', {
+                        method: 'POST',
+                        body: JSON.stringify(choreData)
+                    });
+                    this.showNotification('Chore added successfully!', 'success');
+                    form.reset();
+                    await this.loadChores();
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Failed to add chore', 'error');
+                }
+            }
+
+            async completeChore(choreName) {
+                try {
+                    const response = await this.makeRequest(`/chores/${encodeURIComponent(choreName)}/complete`, {
+                        method: 'PUT'
+                    });
+                    this.showNotification('Chore completed!', 'success');
+                    await this.loadChores();
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Failed to complete chore', 'error');
+                }
+            }
+
+            async deleteChore(choreName) {
+                if (!confirm(`Are you sure you want to delete "${choreName}"?`)) {
+                    return;
+                }
+                
+                try {
+                    const response = await this.makeRequest(`/chores/${encodeURIComponent(choreName)}`, {
+                        method: 'DELETE'
+                    });
+                    this.showNotification('Chore deleted', 'success');
+                    await this.loadChores();
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Failed to delete chore', 'error');
+                }
+            }
+
+            showDashboard() {
+                document.getElementById('dashboard').classList.remove('hidden');
+            }
+
+            logout() {
+                document.cookie = "";
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the app
+        const choreManager = new ChoreManager();
+    </script>
+</body>
+</html>

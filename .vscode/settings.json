@@ -114,7 +114,9 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "cinttypes": "cpp",
-        "__config_site": "cpp"
+        "__config_site": "cpp",
+        "unordered_set": "cpp",
+        "regex": "cpp"
     },
     "github.copilot.enable": {
         "*": false,

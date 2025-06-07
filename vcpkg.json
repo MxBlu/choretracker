@@ -3,6 +3,9 @@
     "dpp",
     "openssl",
     "spdlog",
-    "mongo-cxx-driver"
+    "mongo-cxx-driver",
+    { "name": "cpp-httplib", "features": [ "openssl", "zlib" ] },
+    "crow",
+    "stduuid"
   ]
 }

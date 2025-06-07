@@ -36,6 +36,8 @@ RUN --mount=type=cache,target=/vcpkg-cache cmake \
 RUN --mount=type=cache,target=/vcpkg-cache cmake --build build --config Release --target choretracker -v
 RUN strip build/choretracker
 
+COPY web web
+
 FROM ubuntu AS runtime
 
 RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y tzdata && \
@@ -43,5 +45,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y tzdata && \
 
 COPY --from=build /src/build/vcpkg_installed/x64-linux-release/lib/* /usr/lib/
 COPY --from=build /src/build/choretracker /app/choretracker
+COPY --from=build /src/web /app/web
 
-CMD [ "/app/choretracker" ]
+WORKDIR /app
+
+CMD [ "./choretracker" ]

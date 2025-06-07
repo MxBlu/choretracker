@@ -9,6 +9,7 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
 #define CHORE_COL "chores"
+#define USER_SESSION_COL "user_sessions"
 
 std::vector<chore_definition> Database::list_all_chores() {
    auto client = pool.acquire();
@@ -86,4 +87,29 @@ bool Database::complete_chore(const dpp::snowflake& user_id, const std::string& 
    ));
 
    return result.has_value() && result.value().modified_count() > 0;
+}
+
+std::optional<user_session> Database::get_session_by_cookie(const std::string& session_cookie) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto doc = db[USER_SESSION_COL].find_one(make_document(
+      kvp("session_cookie", session_cookie)
+   ));
+
+   if (doc.has_value()) {
+      return user_session::from_bson(doc.value());
+   } else {
+      return {};
+   }
+}
+
+bool Database::add_session(const user_session& session) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto doc = session.to_bson();
+   auto result = db[USER_SESSION_COL].insert_one(std::move(doc));
+
+   return result.has_value() && result.value().inserted_id().type() == bsoncxx::type::k_oid;
 }
