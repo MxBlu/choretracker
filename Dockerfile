@@ -40,7 +40,7 @@ COPY web web
 
 FROM ubuntu AS runtime
 
-RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y tzdata && \
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y tzdata ca-certificates && \
       apt clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /src/build/vcpkg_installed/x64-linux-release/lib/* /usr/lib/
