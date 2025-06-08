@@ -7,9 +7,12 @@
 #define DISCORD_API_BASE_URL "https://discord.com"
 
 std::string DiscordOAuth::generate_authorize_url() {
-    return std::format(
-        "https://discord.com/api/oauth2/authorize?client_id={}&redirect_uri={}&response_type=code&scope=identify", 
-        client_id, redirect_uri);
+    return "https://discord.com/api/oauth2/authorize" +
+        std::format("?client_id={}", client_id) + 
+        std::format("&redirect_uri={}", redirect_uri) +
+        "&response_type=code" + 
+        "&integration_type=1" +
+        "&scope=identify+applications.commands";
 }
 
 std::optional<nlohmann::json> DiscordOAuth::exchange_code_for_token(const std::string& code) {
