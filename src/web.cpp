@@ -170,6 +170,7 @@ crow::response Web::auth_callback(const crow::request& req, const std::string& c
 
     cookie_ctx.set_cookie("session_id", user_session.session_cookie)
         .path("/")
+        .max_age(2592000ll) // 30 days
         .same_site(crow::CookieParser::Cookie::SameSitePolicy::Lax)
         .httponly();
 
