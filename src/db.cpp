@@ -51,6 +51,30 @@ std::vector<chore_definition> Database::list_chores_by_user(const dpp::snowflake
    return chores;
 }
 
+std::vector<chore_definition> Database::find_chores_by_name(const dpp::snowflake& user_id, const std::string &query) {
+   auto client = pool.acquire();
+   auto db = client[db_name];
+
+   auto cursor = db[CHORE_COL].find(make_document(
+      kvp("owner_user_id", user_id.str()),
+      kvp("$text", make_document(
+         kvp("$search", query)
+      ))
+   ));
+
+   std::vector<chore_definition> chores;
+   for (auto&& doc : cursor) {
+      auto def = chore_definition::from_bson(doc);
+      if (def.has_value()) {
+         chores.emplace_back(def.value());
+      } else {
+         spdlog::warn(std::format("Invalid chore document in db: id='{}'", doc["_id"].get_oid().value.to_string()));
+      }
+   }
+   
+   return chores;
+}
+
 bool Database::add_chore(const chore_definition& chore) {
    auto client = pool.acquire();
    auto db = client[db_name];

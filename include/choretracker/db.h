@@ -110,6 +110,7 @@ class Database {
 
         std::vector<chore_definition> list_all_chores();
         std::vector<chore_definition> list_chores_by_user(const dpp::snowflake& user_id);
+        std::vector<chore_definition> find_chores_by_name(const dpp::snowflake& user_id, const std::string &query);
         bool add_chore(const chore_definition& chore);
         bool delete_chore(const dpp::snowflake& user_id, const std::string& chore_name);
         bool complete_chore(const dpp::snowflake& user_id, const std::string& chore_name);

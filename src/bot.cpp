@@ -30,12 +30,12 @@ void Bot::init() {
             dpp::slashcommand delete_chores_command("deletechore", "Delete a chore", cluster.me.id);
             delete_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             delete_chores_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of chore", true));
+                dpp::command_option(dpp::co_string, "name", "Name of chore", true).set_auto_complete(true));
             
             dpp::slashcommand reset_chore_command("resetchore", "Reset a timer on a chore", cluster.me.id);
             reset_chore_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             reset_chore_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of chore", true));
+                dpp::command_option(dpp::co_string, "name", "Name of chore", true).set_auto_complete(true));
 
             if (config_get_bool(CONFIG_REGISTER_COMMANDS).value_or(false)) {
                 auto test_guild = config_get_str(CONFIG_TEST_GUILD);
@@ -82,7 +82,7 @@ void Bot::init() {
     });
 
     cluster.on_slashcommand([this](const dpp::slashcommand_t &event) {
-        spdlog::info(std::format("Command received: {} from {}", event.command.get_command_name(), event.command.usr.username));
+        spdlog::info(std::format("Command received: command='{}' user='{}'", event.command.get_command_name(), event.command.usr.username));
         if (event.command.get_command_name() == "listchores") {
             list_chores(db, event);
         } else if (event.command.get_command_name() == "addchore") {
@@ -95,6 +95,41 @@ void Bot::init() {
             alerter.run_alerts();
         } else {
             spdlog::error("Unknown command received");
+        }
+    });
+
+    cluster.on_autocomplete([this](const dpp::autocomplete_t &event) {
+        spdlog::info(std::format("Autocomplete triggered for command: command='{}' user='{}'", event.name, event.command.usr.username));
+        
+        std::optional<dpp::command_option> o_focused_opt;
+        for (auto &opt : event.options) {
+            if (opt.focused) {
+                o_focused_opt = opt;
+            }
+        }
+
+        if (!o_focused_opt.has_value()) {
+            spdlog::warn("Autocomplete command had no focused opt?");
+            return;
+        }
+
+        auto user_id = event.command.usr.id;
+        auto focused_opt = o_focused_opt.value();
+        if (focused_opt.name == "name") {
+            std::string value = std::get<std::string>(focused_opt.value);
+            dpp::interaction_response resp(dpp::ir_autocomplete_reply);
+
+            std::vector<chore_definition> chores;
+            if (value.empty()) {
+                chores = db.list_chores_by_user(user_id);
+            } else {
+                chores = db.find_chores_by_name(user_id, value);
+            }
+            for (auto chore : chores) {
+                resp.add_autocomplete_choice(dpp::command_option_choice(chore.name, chore.name));
+            }
+
+            cluster.interaction_response_create(event.command.id, event.command.token, resp);
         }
     });
 
