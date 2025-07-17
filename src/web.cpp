@@ -62,7 +62,7 @@ void Web::init(const std::string& base_url, int port) {
         return user_get(user_session.value());
     });
 
-    CROW_ROUTE(server, "/api/chores")
+    CROW_ROUTE(server, "/api/tasks")
     ([this](const crow::request& req) {
         auto user_session = check_auth(req);
         if (!user_session) {
@@ -71,10 +71,10 @@ void Web::init(const std::string& base_url, int port) {
             return res;
         }
         
-        return chores_list(user_session.value().user_id);
+        return tasks_list(user_session.value().user_id);
     });
 
-    CROW_ROUTE(server, "/api/chores").methods("POST"_method)
+    CROW_ROUTE(server, "/api/tasks").methods("POST"_method)
     ([this](const crow::request& req) {
         auto user_session = check_auth(req);
         if (!user_session) {
@@ -83,21 +83,21 @@ void Web::init(const std::string& base_url, int port) {
             return res;
         }
 
-        std::string chore_name;
-        int32_t chore_frequency;
+        std::string task_name;
+        int32_t task_frequency;
         try {
             auto body_json = nlohmann::json::parse(req.body);
-            chore_name = body_json["chore_name"];
-            chore_frequency = body_json["chore_frequency"];
+            task_name = body_json["task_name"];
+            task_frequency = body_json["task_frequency"];
         } catch (const std::exception&) {
             return crow::response(400);
         }
 
-        return chores_add(user_session.value().user_id, chore_name, chore_frequency);
+        return tasks_add(user_session.value().user_id, task_name, task_frequency);
     });
 
-    CROW_ROUTE(server, "/api/chores/<string>/complete").methods("PUT"_method)
-    ([this](const crow::request& req, const std::string& chore_name) {
+    CROW_ROUTE(server, "/api/tasks/<string>/complete").methods("PUT"_method)
+    ([this](const crow::request& req, const std::string& task_name) {
         auto user_session = check_auth(req);
         if (!user_session) {
             crow::response res(302);
@@ -105,12 +105,12 @@ void Web::init(const std::string& base_url, int port) {
             return res;
         }
 
-        std::string decoded_chore_name = uri_decode(chore_name);
-        return chores_complete(user_session.value().user_id, decoded_chore_name);
+        std::string decoded_task_name = uri_decode(task_name);
+        return tasks_complete(user_session.value().user_id, decoded_task_name);
     });
 
-    CROW_ROUTE(server, "/api/chores/<string>").methods("DELETE"_method)
-    ([this](const crow::request& req, const std::string& chore_name) {
+    CROW_ROUTE(server, "/api/tasks/<string>").methods("DELETE"_method)
+    ([this](const crow::request& req, const std::string& task_name) {
         auto user_session = check_auth(req);
         if (!user_session) {
             crow::response res(302);
@@ -118,8 +118,8 @@ void Web::init(const std::string& base_url, int port) {
             return res;
         }
 
-        std::string decoded_chore_name = uri_decode(chore_name);
-        return chores_delete(user_session.value().user_id, decoded_chore_name);
+        std::string decoded_task_name = uri_decode(task_name);
+        return tasks_delete(user_session.value().user_id, decoded_task_name);
     });
 
     running_future = server.port(port).multithreaded().run_async();
@@ -186,41 +186,41 @@ crow::response Web::user_get(const user_session& user_session) {
     return crow::response(200, "application/json", json_user.dump());
 }
 
-crow::response Web::chores_list(const std::string& user_id) {
+crow::response Web::tasks_list(const std::string& user_id) {
     nlohmann::json resp_json;
-    resp_json["chores"] =  nlohmann::json::array();
+    resp_json["tasks"] =  nlohmann::json::array();
 
-    for (auto chore : db.list_chores_by_user(user_id)) {
-        resp_json["chores"].push_back(chore.to_json());
+    for (auto task : db.list_tasks_by_user(user_id)) {
+        resp_json["tasks"].push_back(task.to_json());
     }
 
     return crow::response(200, "application/json", resp_json.dump());
 }
 
-crow::response Web::chores_add(const std::string& user_id, const std::string& chore_name, int32_t chore_frequency) {
-    chore_definition chore;
-    chore.owner_user_id = user_id;
-    chore.name = chore_name;
-    chore.last_completed = get_today_as_ymd();
-    chore.frequency_days = chore_frequency;
+crow::response Web::tasks_add(const std::string& user_id, const std::string& task_name, int32_t task_frequency) {
+    task_definition task;
+    task.owner_user_id = user_id;
+    task.name = task_name;
+    task.last_completed = get_today_as_ymd();
+    task.frequency_days = task_frequency;
 
-    if (db.add_chore(chore)) {
-        return crow::response(200, "application/json", chore.to_json().dump());
+    if (db.add_task(task)) {
+        return crow::response(200, "application/json", task.to_json().dump());
     } else {
         return crow::response(400, "Already exists");
     }
 }
 
-crow::response Web::chores_delete(const std::string& user_id, const std::string& chore_name) {
-    if (db.delete_chore(user_id, chore_name)) {
+crow::response Web::tasks_delete(const std::string& user_id, const std::string& task_name) {
+    if (db.delete_task(user_id, task_name)) {
         return crow::response(200);
     } else {
         return crow::response(404, "Not found");
     }
 }
 
-crow::response Web::chores_complete(const std::string& user_id, const std::string& chore_name) {
-    if (db.complete_chore(user_id, chore_name)) {
+crow::response Web::tasks_complete(const std::string& user_id, const std::string& task_name) {
+    if (db.complete_task(user_id, task_name)) {
         return crow::response(200);
     } else {
         return crow::response(404, "Not found");

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chore Manager</title>
+    <title>Task Manager</title>
     <style>
         :root {
             /* Light mode colors */
@@ -14,7 +14,7 @@
             --text-secondary: #666;
             --text-meta: #555;
             --border-color: #e1e5e9;
-            --chore-item-bg: #f8f9fa;
+            --task-item-bg: #f8f9fa;
             --input-bg: #ffffff;
             --primary-color: #5865F2;
             --primary-hover: #4752C4;
@@ -36,7 +36,7 @@
             --text-secondary: #b0b0b0;
             --text-meta: #a0a0a0;
             --border-color: #3a3a4a;
-            --chore-item-bg: #2a2a3a;
+            --task-item-bg: #2a2a3a;
             --input-bg: #2a2a3a;
             --primary-color: #6c7ce7;
             --primary-hover: #5a6cdf;
@@ -214,13 +214,13 @@
             gap: 30px;
         }
 
-        .chore-container {
+        .task-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        .add-chore-card {
+        .add-task-card {
             background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -230,7 +230,7 @@
             transition: all 0.3s ease;
         }
 
-        .chores-card {
+        .tasks-card {
             flex: 1;
             background: var(--card-bg);
             backdrop-filter: blur(10px);
@@ -304,14 +304,14 @@
             transform: none;
         }
 
-        .chore-list {
+        .task-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        .chore-item {
-            background: var(--chore-item-bg);
+        .task-item {
+            background: var(--task-item-bg);
             border-radius: 15px;
             padding: 20px;
             border-left: 5px solid var(--border-color);
@@ -319,36 +319,36 @@
             position: relative;
         }
 
-        .chore-item.due {
+        .task-item.due {
             border-left-color: var(--warning-color);
-            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1) 0%, var(--chore-item-bg) 100%);
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1) 0%, var(--task-item-bg) 100%);
         }
 
-        .chore-item.overdue {
+        .task-item.overdue {
             border-left-color: var(--danger-color);
-            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, var(--chore-item-bg) 100%);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, var(--task-item-bg) 100%);
         }
 
-        .chore-item.completed-today {
+        .task-item.completed-today {
             border-left-color: var(--success-color);
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, var(--chore-item-bg) 100%);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, var(--task-item-bg) 100%);
         }
 
-        .chore-header {
+        .task-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 10px;
         }
 
-        .chore-name {
+        .task-name {
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 5px;
         }
 
-        .chore-meta {
+        .task-meta {
             font-size: 0.9rem;
             color: var(--text-secondary);
             display: flex;
@@ -356,7 +356,7 @@
             gap: 3px;
         }
 
-        .chore-status {
+        .task-status {
             font-weight: 600;
             font-size: 0.9rem;
             padding: 4px 8px;
@@ -384,7 +384,7 @@
             color: white;
         }
 
-        .chore-actions {
+        .task-actions {
             display: flex;
             gap: 10px;
             margin-top: 15px;
@@ -501,7 +501,7 @@
             <!-- Header -->
             <div class="header">
                 <div class="logo">
-                    <h1>📋 Chore Manager</h1>
+                    <h1>📋 Task Manager</h1>
                 </div>
                 <div class="header-controls">
                     <div class="theme-toggle" id="themeToggle">
@@ -518,26 +518,26 @@
 
             <!-- Main Content -->
             <div class="main-content">
-                <!-- Add Chore Card -->
-                <div class="add-chore-card">
-                    <h2 class="card-title">➕ Add New Chore</h2>
-                    <form id="addChoreForm">
+                <!-- Add Task Card -->
+                <div class="add-task-card">
+                    <h2 class="card-title">➕ Add New Task</h2>
+                    <form id="addTaskForm">
                         <div class="form-group">
-                            <label for="choreName">Chore Name</label>
-                            <input type="text" id="choreName" name="choreName" required placeholder="e.g., Exercise, Clean kitchen">
+                            <label for="taskName">Task Name</label>
+                            <input type="text" id="taskName" name="taskName" required placeholder="e.g., Exercise, Clean kitchen">
                         </div>
                         <div class="form-group">
-                            <label for="choreFrequency">Frequency (days)</label>
-                            <input type="number" id="choreFrequency" name="choreFrequency" required min="1" placeholder="e.g., 7 for weekly">
+                            <label for="taskFrequency">Frequency (days)</label>
+                            <input type="number" id="taskFrequency" name="taskFrequency" required min="1" placeholder="e.g., 7 for weekly">
                         </div>
-                        <button type="submit" class="btn">Add Chore</button>
+                        <button type="submit" class="btn">Add Task</button>
                     </form>
                 </div>
 
-                <!-- Chores List Card -->
-                <div class="chores-card">
-                    <h2 class="card-title">📝 Your Chores</h2>
-                    <div id="choresContainer" class="chore-container">
+                <!-- Tasks List Card -->
+                <div class="tasks-card">
+                    <h2 class="card-title">📝 Your Tasks</h2>
+                    <div id="tasksContainer" class="task-container">
                         <div class="loading">
                             <div class="spinner"></div>
                         </div>
@@ -551,12 +551,12 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        class ChoreManager {
+        class TaskManager {
             constructor() {
                 this.apiBase = '/api';
                 this.token = null;
                 this.user = null;
-                this.chores = [];
+                this.tasks = [];
                 
                 this.initTheme();
                 this.init();
@@ -594,9 +594,9 @@
             }
 
             setupEventListeners() {
-                document.getElementById('addChoreForm').addEventListener('submit', (e) => {
+                document.getElementById('addTaskForm').addEventListener('submit', (e) => {
                     e.preventDefault();
-                    this.addChore();
+                    this.addTask();
                 });
             }
 
@@ -641,8 +641,8 @@
                     this.user = userInfo;
                     this.updateUserInfo();
 
-                    // Load chores
-                    await this.loadChores();
+                    // Load tasks
+                    await this.loadTasks();
 
                     this.showDashboard();
                 } catch (error) {
@@ -651,11 +651,11 @@
                 }
             }
 
-            async loadChores() {
-                const response = await this.makeRequest('/chores');
+            async loadTasks() {
+                const response = await this.makeRequest('/tasks');
                 if (response) {
-                    this.chores = response.chores || [];
-                    this.renderChores();
+                    this.tasks = response.tasks || [];
+                    this.renderTasks();
                 }
             }
 
@@ -669,25 +669,25 @@
                 document.getElementById('userAvatar').src = avatarUrl;
             }
 
-            renderChores() {
-                const container = document.getElementById('choresContainer');
+            renderTasks() {
+                const container = document.getElementById('tasksContainer');
                 
-                if (this.chores.length === 0) {
+                if (this.tasks.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
-                            <h3>No chores yet!</h3>
-                            <p>Add your first chore to get started.</p>
+                            <h3>No tasks yet!</h3>
+                            <p>Add your first task to get started.</p>
                         </div>
                     `;
                     return;
                 }
 
-                container.innerHTML = this.chores.map(chore => this.renderChore(chore)).join('');
+                container.innerHTML = this.tasks.map(task => this.renderTask(task)).join('');
             }
 
-            renderChore(chore) {
+            renderTask(task) {
                 const today = new Date().toISOString().split('T')[0];
-                const isCompletedToday = chore.last_completed === today;
+                const isCompletedToday = task.last_completed === today;
                 
                 let statusClass = '';
                 let statusText = '';
@@ -697,10 +697,10 @@
                     statusClass = 'completed-today';
                     statusText = '✅ Completed today';
                     statusBadgeClass = 'status-good';
-                } else if (chore.days_overdue >= 0) {
-                    if (chore.days_overdue > 0) {
+                } else if (task.days_overdue >= 0) {
+                    if (task.days_overdue > 0) {
                         statusClass = 'overdue';
-                        statusText = `🔴 Overdue by ${chore.days_overdue} day${chore.days_overdue > 1 ? 's' : ''}`;
+                        statusText = `🔴 Overdue by ${task.days_overdue} day${task.days_overdue > 1 ? 's' : ''}`;
                         statusBadgeClass = 'status-overdue';
                     } else {
                         statusClass = 'due';
@@ -708,30 +708,30 @@
                         statusBadgeClass = 'status-due';
                     }
                 } else {
-                    const daysLeft = chore.frequency_days - chore.days_since_completed;
+                    const daysLeft = task.frequency_days - task.days_since_completed;
                     statusText = `🟢 ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining`;
                     statusBadgeClass = 'status-upcoming';
                 }
 
                 return `
-                    <div class="chore-item ${statusClass}">
-                        <div class="chore-header">
+                    <div class="task-item ${statusClass}">
+                        <div class="task-header">
                             <div>
-                                <div class="chore-name">${this.escapeHtml(chore.name)}</div>
-                                <div class="chore-meta">
-                                    <span>Every ${chore.frequency_days} day${chore.frequency_days > 1 ? 's' : ''}</span>
-                                    <span>Last completed: ${chore.last_completed}</span>
+                                <div class="task-name">${this.escapeHtml(task.name)}</div>
+                                <div class="task-meta">
+                                    <span>Every ${task.frequency_days} day${task.frequency_days > 1 ? 's' : ''}</span>
+                                    <span>Last completed: ${task.last_completed}</span>
                                 </div>
                             </div>
-                            <div class="chore-status ${statusBadgeClass}">
+                            <div class="task-status ${statusBadgeClass}">
                                 ${statusText}
                             </div>
                         </div>
-                        <div class="chore-actions">
-                            <button class="btn btn-success btn-small" onclick="choreManager.completeChore('${this.escapeHtml(chore.name)}')" ${isCompletedToday ? 'disabled' : ''}>
+                        <div class="task-actions">
+                            <button class="btn btn-success btn-small" onclick="taskManager.completeTask('${this.escapeHtml(task.name)}')" ${isCompletedToday ? 'disabled' : ''}>
                                 ${isCompletedToday ? 'Completed' : 'Complete'}
                             </button>
-                            <button class="btn btn-danger btn-small" onclick="choreManager.deleteChore('${this.escapeHtml(chore.name)}')">
+                            <button class="btn btn-danger btn-small" onclick="taskManager.deleteTask('${this.escapeHtml(task.name)}')">
                                 Delete
                             </button>
                         </div>
@@ -739,61 +739,61 @@
                 `;
             }
 
-            async addChore() {
-                const form = document.getElementById('addChoreForm');
+            async addTask() {
+                const form = document.getElementById('addTaskForm');
                 const formData = new FormData(form);
                 
-                const choreData = {
-                    chore_name: formData.get('choreName').trim(),
-                    chore_frequency: parseInt(formData.get('choreFrequency'))
+                const taskData = {
+                    task_name: formData.get('taskName').trim(),
+                    task_frequency: parseInt(formData.get('taskFrequency'))
                 };
 
-                if (!choreData.chore_name || !choreData.chore_frequency || choreData.chore_frequency < 1) {
-                    this.showNotification('Please enter valid chore details', 'error');
+                if (!taskData.task_name || !taskData.task_frequency || taskData.task_frequency < 1) {
+                    this.showNotification('Please enter valid task details', 'error');
                     return;
                 }
 
                 try {
-                    const response = await this.makeRequest('/chores', {
+                    const response = await this.makeRequest('/tasks', {
                         method: 'POST',
-                        body: JSON.stringify(choreData)
+                        body: JSON.stringify(taskData)
                     });
-                    this.showNotification('Chore added successfully!', 'success');
+                    this.showNotification('Task added successfully!', 'success');
                     form.reset();
-                    await this.loadChores();
+                    await this.loadTasks();
                 } catch (e) {
                     console.error(e);
-                    this.showNotification('Failed to add chore', 'error');
+                    this.showNotification('Failed to add task', 'error');
                 }
             }
 
-            async completeChore(choreName) {
+            async completeTask(taskName) {
                 try {
-                    const response = await this.makeRequest(`/chores/${encodeURIComponent(choreName)}/complete`, {
+                    const response = await this.makeRequest(`/tasks/${encodeURIComponent(taskName)}/complete`, {
                         method: 'PUT'
                     });
-                    this.showNotification('Chore completed!', 'success');
-                    await this.loadChores();
+                    this.showNotification('Task completed!', 'success');
+                    await this.loadTasks();
                 } catch (e) {
                     console.error(e);
-                    this.showNotification('Failed to complete chore', 'error');
+                    this.showNotification('Failed to complete task', 'error');
                 }
             }
 
-            async deleteChore(choreName) {
-                if (!confirm(`Are you sure you want to delete "${choreName}"?`)) {
+            async deleteTask(taskName) {
+                if (!confirm(`Are you sure you want to delete "${taskName}"?`)) {
                     return;
                 }
                 
                 try {
-                    const response = await this.makeRequest(`/chores/${encodeURIComponent(choreName)}`, {
+                    const response = await this.makeRequest(`/tasks/${encodeURIComponent(taskName)}`, {
                         method: 'DELETE'
                     });
-                    this.showNotification('Chore deleted', 'success');
-                    await this.loadChores();
+                    this.showNotification('Task deleted', 'success');
+                    await this.loadTasks();
                 } catch (e) {
                     console.error(e);
-                    this.showNotification('Failed to delete chore', 'error');
+                    this.showNotification('Failed to delete task', 'error');
                 }
             }
 
@@ -824,7 +824,7 @@
         }
 
         // Initialize the app
-        const choreManager = new ChoreManager();
+        const taskManager = new TaskManager();
     </script>
 </body>
 </html>

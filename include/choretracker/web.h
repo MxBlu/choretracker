@@ -27,10 +27,10 @@ class Web {
 
         crow::response auth_callback(const crow::request& req, const std::string& code);
         crow::response user_get(const user_session& user_session);
-        crow::response chores_list(const std::string& user_id);
-        crow::response chores_add(const std::string& user_id, const std::string& chore_name, int32_t chore_frequency);
-        crow::response chores_delete(const std::string& user_id, const std::string& chore_name);
-        crow::response chores_complete(const std::string& user_id, const std::string& chore_name);
+        crow::response tasks_list(const std::string& user_id);
+        crow::response tasks_add(const std::string& user_id, const std::string& task_name, int32_t task_frequency);
+        crow::response tasks_delete(const std::string& user_id, const std::string& task_name);
+        crow::response tasks_complete(const std::string& user_id, const std::string& task_name);
 
         crow::App<crow::CORSHandler, crow::CookieParser> server;
         DiscordOAuth oauth;

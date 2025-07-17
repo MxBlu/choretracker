@@ -28,7 +28,7 @@ void Alerter::run_alerts() {
    auto now = std::chrono::sys_days(get_today_as_ymd());
    spdlog::debug(std::format("Running alerts: now=\"{}\"", now));
 
-   auto chores = db.list_all_chores();
+   auto chores = db.list_all_tasks();
    for (auto chore : chores) {
       auto next_expected_time = std::chrono::sys_days(chore.last_completed) + std::chrono::days(chore.frequency_days);
 

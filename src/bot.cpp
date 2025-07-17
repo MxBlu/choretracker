@@ -6,10 +6,10 @@
 #include "choretracker/config.h"
 #include "choretracker/utils.hpp"
 
-void list_chores(Database &db, const dpp::slashcommand_t &event);
-void add_chore(Database &db, const dpp::slashcommand_t &event);
-void delete_chore(Database &db, const dpp::slashcommand_t &event);
-void complete_chore(Database &db, const dpp::slashcommand_t &event);
+void list_tasks(Database &db, const dpp::slashcommand_t &event);
+void add_task(Database &db, const dpp::slashcommand_t &event);
+void delete_task(Database &db, const dpp::slashcommand_t &event);
+void complete_task(Database &db, const dpp::slashcommand_t &event);
 
 void Bot::init() {
     cluster.on_ready([this](const dpp::ready_t &event) {
@@ -17,39 +17,39 @@ void Bot::init() {
 
         // Register commands
         if (dpp::run_once<struct register_bot_commands>()) {
-            dpp::slashcommand list_chores_command("listchores", "List currently tracked chores", cluster.me.id);
-            list_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            dpp::slashcommand list_tasks_command("listtasks", "List currently tracked tasks", cluster.me.id);
+            list_tasks_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
 
-            dpp::slashcommand add_chores_command("addchore", "Add a new chore", cluster.me.id);
-            add_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
-            add_chores_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of chore", true));
-            add_chores_command.add_option(
+            dpp::slashcommand add_tasks_command("addtask", "Add a new task", cluster.me.id);
+            add_tasks_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            add_tasks_command.add_option(
+                dpp::command_option(dpp::co_string, "name", "Name of task", true));
+            add_tasks_command.add_option(
                 dpp::command_option(dpp::co_integer, "frequency", "Frequency in days", true));
             
-            dpp::slashcommand delete_chores_command("deletechore", "Delete a chore", cluster.me.id);
-            delete_chores_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
-            delete_chores_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of chore", true).set_auto_complete(true));
+            dpp::slashcommand delete_tasks_command("deletetask", "Delete a task", cluster.me.id);
+            delete_tasks_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            delete_tasks_command.add_option(
+                dpp::command_option(dpp::co_string, "name", "Name of task", true).set_auto_complete(true));
             
-            dpp::slashcommand reset_chore_command("resetchore", "Reset a timer on a chore", cluster.me.id);
-            reset_chore_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
-            reset_chore_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of chore", true).set_auto_complete(true));
+            dpp::slashcommand reset_task_command("resettask", "Reset a timer on a task", cluster.me.id);
+            reset_task_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
+            reset_task_command.add_option(
+                dpp::command_option(dpp::co_string, "name", "Name of task", true).set_auto_complete(true));
 
             if (config_get_bool(CONFIG_REGISTER_COMMANDS).value_or(false)) {
                 auto test_guild = config_get_str(CONFIG_TEST_GUILD);
                 if (test_guild.has_value()) {
                     // Command only available when testing in a guild
-                    dpp::slashcommand run_alerts_command("runalerts", "Run alerts for chores", cluster.me.id);
+                    dpp::slashcommand run_alerts_command("runalerts", "Run alerts for tasks", cluster.me.id);
 
                     cluster.guild_bulk_command_create({
-                        list_chores_command, add_chores_command, delete_chores_command, reset_chore_command, run_alerts_command
+                        list_tasks_command, add_tasks_command, delete_tasks_command, reset_task_command, run_alerts_command
                     }, test_guild.value());
                     spdlog::info(std::format("Discord commands registered to guild: guildId={}", test_guild.value()));
                 } else {
                     cluster.global_bulk_command_create({
-                        list_chores_command, add_chores_command, delete_chores_command, reset_chore_command
+                        list_tasks_command, add_tasks_command, delete_tasks_command, reset_task_command
                     });
                     spdlog::info("Discord commands registered globally");
                 }
@@ -83,14 +83,14 @@ void Bot::init() {
 
     cluster.on_slashcommand([this](const dpp::slashcommand_t &event) {
         spdlog::info(std::format("Command received: command='{}' user='{}'", event.command.get_command_name(), event.command.usr.username));
-        if (event.command.get_command_name() == "listchores") {
-            list_chores(db, event);
-        } else if (event.command.get_command_name() == "addchore") {
-            add_chore(db, event);
-        } else if (event.command.get_command_name() == "deletechore") {
-            delete_chore(db, event);
-        } else if (event.command.get_command_name() == "resetchore") {
-            complete_chore(db, event);
+        if (event.command.get_command_name() == "listtasks") {
+            list_tasks(db, event);
+        } else if (event.command.get_command_name() == "addtask") {
+            add_task(db, event);
+        } else if (event.command.get_command_name() == "deletetask") {
+            delete_task(db, event);
+        } else if (event.command.get_command_name() == "resettask") {
+            complete_task(db, event);
         } else if (event.command.get_command_name() == "runalerts") {
             alerter.run_alerts();
         } else {
@@ -119,14 +119,14 @@ void Bot::init() {
             std::string value = std::get<std::string>(focused_opt.value);
             dpp::interaction_response resp(dpp::ir_autocomplete_reply);
 
-            std::vector<chore_definition> chores;
+            std::vector<task_definition> tasks;
             if (value.empty()) {
-                chores = db.list_chores_by_user(user_id);
+                tasks = db.list_tasks_by_user(user_id);
             } else {
-                chores = db.find_chores_by_name(user_id, value);
+                tasks = db.find_tasks_by_name(user_id, value);
             }
-            for (auto chore : chores) {
-                resp.add_autocomplete_choice(dpp::command_option_choice(chore.name, chore.name));
+            for (auto task : tasks) {
+                resp.add_autocomplete_choice(dpp::command_option_choice(task.name, task.name));
             }
 
             cluster.interaction_response_create(event.command.id, event.command.token, resp);
@@ -139,58 +139,59 @@ void Bot::init() {
 
 /* Commands */
 
-void list_chores(Database &db, const dpp::slashcommand_t &event) {
+void list_tasks(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
-    auto chores = db.list_chores_by_user(user_id);
-    if (chores.size() > 0) {
-        std::string chore_list = "Chores: \n";
-        for (auto chore : chores) {
-            chore_list += std::format("{} - Every {} days - Last performed {}\n", 
-                chore.name, chore.frequency_days, chore.last_completed);
+    auto tasks = db.list_tasks_by_user(user_id);
+    if (tasks.size() > 0) {
+        std::string task_list = "Tasks: \n";
+        for (auto task : tasks) {
+            task_list += std::format("{} - Every {} days - Last performed {}\n", 
+                task.name, task.frequency_days, task.last_completed);
         }
         
-        event.reply(dpp::message(chore_list).set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message(task_list).set_flags(dpp::m_ephemeral));
     } else {
-        event.reply(dpp::message("No chores found").set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message("No tasks found").set_flags(dpp::m_ephemeral));
     }
 }
 
-void add_chore(Database &db, const dpp::slashcommand_t &event) {
+void add_task(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
     auto guild_id = event.command.guild_id;
 
-    auto chore_name = std::get<std::string>(event.get_parameter("name"));
-    auto chore_frequency = std::get<int64_t>(event.get_parameter("frequency"));
+    auto task_name = std::get<std::string>(event.get_parameter("name"));
+    auto task_frequency = std::get<int64_t>(event.get_parameter("frequency"));
 
-    db.add_chore({ 
+    db.add_task({ 
         user_id,
-        chore_name, 
-        static_cast<int>(chore_frequency), 
+        task_name,
+        task_type::regular,
+        static_cast<int>(task_frequency), 
         get_today_as_ymd() 
     });
 
-    event.reply(dpp::message("Chore added").set_flags(dpp::m_ephemeral));
+    event.reply(dpp::message("Task added").set_flags(dpp::m_ephemeral));
 }
 
-void delete_chore(Database &db, const dpp::slashcommand_t &event) {
+void delete_task(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
-    auto chore_name = std::get<std::string>(event.get_parameter("name"));
+    auto task_name = std::get<std::string>(event.get_parameter("name"));
 
-    bool deleted = db.delete_chore(user_id, chore_name);
+    bool deleted = db.delete_task(user_id, task_name);
     if (deleted) {
-        event.reply(dpp::message("Chore deleted").set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message("Task deleted").set_flags(dpp::m_ephemeral));
     } else {
-        event.reply(dpp::message("Chore not found").set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message("Task not found").set_flags(dpp::m_ephemeral));
     }
 }
 
-void complete_chore(Database &db, const dpp::slashcommand_t &event) {
+void complete_task(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
 
-    auto chore_name = std::get<std::string>(event.get_parameter("name"));
+    auto task_name = std::get<std::string>(event.get_parameter("name"));
 
-    db.complete_chore(user_id, chore_name);
-    event.reply(dpp::message("Chore reset").set_flags(dpp::m_ephemeral));
+    db.complete_task(user_id, task_name);
+    event.reply(dpp::message("Task reset").set_flags(dpp::m_ephemeral));
 }

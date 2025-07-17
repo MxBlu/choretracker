@@ -17,9 +17,14 @@
 using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
-struct chore_definition {
+enum task_type {
+    regular = 0
+};
+
+struct task_definition {
     dpp::snowflake owner_user_id;
     std::string name;
+    task_type type;
     int32_t frequency_days;
     std::chrono::year_month_day last_completed;
 
@@ -31,6 +36,7 @@ struct chore_definition {
         return make_document(
             kvp("owner_user_id", owner_user_id.str()),
             kvp("name", name),
+            kvp("type", type),
             kvp("frequency_days", frequency_days),
             kvp("last_completed", ymd_to_string(last_completed))
         );
@@ -40,6 +46,7 @@ struct chore_definition {
         return {
             { "owner_user_id", owner_user_id.str() },
             { "name", name },
+            { "type", type },
             { "frequency_days", frequency_days },
             { "last_completed", ymd_to_string(last_completed) },
             { "days_since_completed", days_since_completed },
@@ -47,18 +54,19 @@ struct chore_definition {
         };
     }
     
-    static std::optional<chore_definition> from_bson(const bsoncxx::document::view& doc) {
+    static std::optional<task_definition> from_bson(const bsoncxx::document::view& doc) {
         try {
-            chore_definition chore;
-            chore.owner_user_id = dpp::snowflake(bson_to_string(doc["owner_user_id"]));
-            chore.name = bson_to_string(doc["name"]);
-            chore.frequency_days = doc["frequency_days"].get_int32().value;
-            chore.last_completed = parse_ymd(bson_to_string(doc["last_completed"])).value();
+            task_definition task;
+            task.owner_user_id = dpp::snowflake(bson_to_string(doc["owner_user_id"]));
+            task.name = bson_to_string(doc["name"]);
+            task.type = static_cast<task_type>(doc["type"].get_int32().value);
+            task.frequency_days = doc["frequency_days"].get_int32().value;
+            task.last_completed = parse_ymd(bson_to_string(doc["last_completed"])).value();
             // Computed values
-            chore.days_since_completed = (std::chrono::sys_days(get_today_as_ymd()) - std::chrono::sys_days(chore.last_completed)).count();
-            chore.days_overdue = chore.days_since_completed - chore.frequency_days;
+            task.days_since_completed = (std::chrono::sys_days(get_today_as_ymd()) - std::chrono::sys_days(task.last_completed)).count();
+            task.days_overdue = task.days_since_completed - task.frequency_days;
 
-            return chore;
+            return task;
         } catch (const std::exception&) {
             return {};
         }
@@ -108,12 +116,12 @@ class Database {
     public:
         Database(const std::string& connection_uri, const std::string& db_name) : pool(mongocxx::uri(connection_uri)), db_name(db_name) {}
 
-        std::vector<chore_definition> list_all_chores();
-        std::vector<chore_definition> list_chores_by_user(const dpp::snowflake& user_id);
-        std::vector<chore_definition> find_chores_by_name(const dpp::snowflake& user_id, const std::string &query);
-        bool add_chore(const chore_definition& chore);
-        bool delete_chore(const dpp::snowflake& user_id, const std::string& chore_name);
-        bool complete_chore(const dpp::snowflake& user_id, const std::string& chore_name);
+        std::vector<task_definition> list_all_tasks();
+        std::vector<task_definition> list_tasks_by_user(const dpp::snowflake& user_id);
+        std::vector<task_definition> find_tasks_by_name(const dpp::snowflake& user_id, const std::string &query);
+        bool add_task(const task_definition& task);
+        bool delete_task(const dpp::snowflake& user_id, const std::string& task_name);
+        bool complete_task(const dpp::snowflake& user_id, const std::string& task_name);
 
         std::optional<user_session> get_session_by_cookie(const std::string& session_cookie);
         bool add_session(const user_session& session);
