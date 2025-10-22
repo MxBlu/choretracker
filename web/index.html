@@ -261,7 +261,8 @@
             color: var(--text-meta);
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid var(--border-color);
@@ -272,7 +273,8 @@
             color: var(--text-primary);
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
         }
@@ -334,6 +336,11 @@
             background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, var(--task-item-bg) 100%);
         }
 
+        .task-item.once-off {
+            border-left-color: var(--info-color);
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, var(--task-item-bg) 100%);
+        }
+
         .task-header {
             display: flex;
             justify-content: space-between;
@@ -380,6 +387,11 @@
         }
 
         .status-upcoming {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .status-once-off {
             background: var(--info-color);
             color: white;
         }
@@ -527,8 +539,15 @@
                             <input type="text" id="taskName" name="taskName" required placeholder="e.g., Exercise, Clean kitchen">
                         </div>
                         <div class="form-group">
+                            <label for="taskType">Task Type</label>
+                            <select id="taskType" name="taskType" required style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 1rem; background: var(--input-bg); color: var(--text-primary);">
+                                <option value="regular">Regular (repeating)</option>
+                                <option value="once_off">Once-off</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="frequencyGroup">
                             <label for="taskFrequency">Frequency (days)</label>
-                            <input type="number" id="taskFrequency" name="taskFrequency" required min="1" placeholder="e.g., 7 for weekly">
+                            <input type="number" id="taskFrequency" name="taskFrequency" min="1" placeholder="e.g., 7 for weekly">
                         </div>
                         <button type="submit" class="btn">Add Task</button>
                     </form>
@@ -598,6 +617,27 @@
                     e.preventDefault();
                     this.addTask();
                 });
+
+                // Handle task type selection
+                document.getElementById('taskType').addEventListener('change', (e) => {
+                    this.toggleFrequencyField(e.target.value);
+                });
+
+                // Initialize frequency field visibility
+                this.toggleFrequencyField(document.getElementById('taskType').value);
+            }
+
+            toggleFrequencyField(taskType) {
+                const frequencyGroup = document.getElementById('frequencyGroup');
+                const frequencyInput = document.getElementById('taskFrequency');
+                
+                if (taskType === 'once_off') {
+                    frequencyGroup.style.display = 'none';
+                    frequencyInput.removeAttribute('required');
+                } else {
+                    frequencyGroup.style.display = 'block';
+                    frequencyInput.setAttribute('required', 'true');
+                }
             }
 
             async makeRequest(endpoint, options = {}) {
@@ -692,26 +732,41 @@
                 let statusClass = '';
                 let statusText = '';
                 let statusBadgeClass = '';
+                let taskMetaText = '';
 
-                if (isCompletedToday) {
-                    statusClass = 'completed-today';
-                    statusText = '✅ Completed today';
-                    statusBadgeClass = 'status-good';
-                } else if (task.days_overdue >= 0) {
-                    if (task.days_overdue > 0) {
-                        statusClass = 'overdue';
-                        statusText = `🔴 Overdue by ${task.days_overdue} day${task.days_overdue > 1 ? 's' : ''}`;
-                        statusBadgeClass = 'status-overdue';
-                    } else {
-                        statusClass = 'due';
-                        statusText = '🟡 Due today';
-                        statusBadgeClass = 'status-due';
-                    }
+                // Handle once-off tasks differently
+                if (task.type === 2) { // once_off
+                    statusClass = 'once-off';
+                    statusText = '⭐ Once-off task';
+                    statusBadgeClass = 'status-once-off';
+                    taskMetaText = 'Once-off task';
                 } else {
-                    const daysLeft = task.frequency_days - task.days_since_completed;
-                    statusText = `🟢 ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining`;
-                    statusBadgeClass = 'status-upcoming';
+                    // Regular and counter tasks
+                    if (isCompletedToday) {
+                        statusClass = 'completed-today';
+                        statusText = '✅ Completed today';
+                        statusBadgeClass = 'status-good';
+                    } else if (task.days_overdue >= 0) {
+                        if (task.days_overdue > 0) {
+                            statusClass = 'overdue';
+                            statusText = `🔴 Overdue by ${task.days_overdue} day${task.days_overdue > 1 ? 's' : ''}`;
+                            statusBadgeClass = 'status-overdue';
+                        } else {
+                            statusClass = 'due';
+                            statusText = '🟡 Due today';
+                            statusBadgeClass = 'status-due';
+                        }
+                    } else {
+                        const daysLeft = task.frequency_days - task.days_since_completed;
+                        statusText = `🟢 ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining`;
+                        statusBadgeClass = 'status-upcoming';
+                    }
+                    taskMetaText = `Every ${task.frequency_days} day${task.frequency_days > 1 ? 's' : ''}`;
                 }
+
+                // For once-off tasks, they can only be completed or deleted (no frequency-based logic)
+                const showCompleteButton = task.type === 2 || !isCompletedToday;
+                const completeButtonText = task.type === 2 ? 'Complete' : (isCompletedToday ? 'Completed' : 'Complete');
 
                 return `
                     <div class="task-item ${statusClass}">
@@ -719,8 +774,8 @@
                             <div>
                                 <div class="task-name">${this.escapeHtml(task.name)}</div>
                                 <div class="task-meta">
-                                    <span>Every ${task.frequency_days} day${task.frequency_days > 1 ? 's' : ''}</span>
-                                    <span>Last completed: ${task.last_completed}</span>
+                                    <span>${taskMetaText}</span>
+                                    ${task.type !== 2 ? `<span>Last completed: ${task.last_completed}</span>` : ''}
                                 </div>
                             </div>
                             <div class="task-status ${statusBadgeClass}">
@@ -728,8 +783,8 @@
                             </div>
                         </div>
                         <div class="task-actions">
-                            <button class="btn btn-success btn-small" onclick="taskManager.completeTask('${this.escapeHtml(task.name)}')" ${isCompletedToday ? 'disabled' : ''}>
-                                ${isCompletedToday ? 'Completed' : 'Complete'}
+                            <button class="btn btn-success btn-small" onclick="taskManager.completeTask('${this.escapeHtml(task.name)}')" ${!showCompleteButton ? 'disabled' : ''}>
+                                ${completeButtonText}
                             </button>
                             <button class="btn btn-danger btn-small" onclick="taskManager.deleteTask('${this.escapeHtml(task.name)}')">
                                 Delete
@@ -743,13 +798,27 @@
                 const form = document.getElementById('addTaskForm');
                 const formData = new FormData(form);
                 
+                const taskType = formData.get('taskType');
                 const taskData = {
                     task_name: formData.get('taskName').trim(),
-                    task_frequency: parseInt(formData.get('taskFrequency'))
+                    task_type: taskType
                 };
 
-                if (!taskData.task_name || !taskData.task_frequency || taskData.task_frequency < 1) {
-                    this.showNotification('Please enter valid task details', 'error');
+                // Only include frequency for regular tasks
+                if (taskType === 'regular') {
+                    const frequency = parseInt(formData.get('taskFrequency'));
+                    if (!frequency || frequency < 1) {
+                        this.showNotification('Please enter a valid frequency for regular tasks', 'error');
+                        return;
+                    }
+                    taskData.task_frequency = frequency;
+                } else {
+                    // For once-off tasks, set frequency to 0
+                    taskData.task_frequency = 0;
+                }
+
+                if (!taskData.task_name) {
+                    this.showNotification('Please enter a task name', 'error');
                     return;
                 }
 
@@ -760,6 +829,8 @@
                     });
                     this.showNotification('Task added successfully!', 'success');
                     form.reset();
+                    // Reset frequency field visibility
+                    this.toggleFrequencyField('regular');
                     await this.loadTasks();
                 } catch (e) {
                     console.error(e);

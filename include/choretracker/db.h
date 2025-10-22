@@ -23,6 +23,19 @@ enum task_type {
     once_off = 2
 };
 
+// Get a task_type from a string
+inline task_type task_type_from_string(const std::string& type_str) {
+    if (type_str == "regular") {
+        return task_type::regular;
+    } else if (type_str == "counter") {
+        return task_type::counter;
+    } else if (type_str == "once_off") {
+        return task_type::once_off;
+    }
+    // Default to regular if unknown
+    return task_type::regular;
+}
+
 struct task_definition {
     dpp::snowflake owner_user_id;
     std::string name;

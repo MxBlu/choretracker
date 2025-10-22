@@ -28,7 +28,7 @@ class Web {
         crow::response auth_callback(const crow::request& req, const std::string& code);
         crow::response user_get(const user_session& user_session);
         crow::response tasks_list(const std::string& user_id);
-        crow::response tasks_add(const std::string& user_id, const std::string& task_name, int32_t task_frequency);
+        crow::response tasks_add(const std::string& user_id, const std::string& task_name, task_type task_type, int32_t task_frequency);
         crow::response tasks_delete(const std::string& user_id, const std::string& task_name);
         crow::response tasks_complete(const std::string& user_id, const std::string& task_name);
 

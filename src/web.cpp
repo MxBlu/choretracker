@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <dpp/nlohmann/json.hpp>
 #include <uuid.h>
 
@@ -85,15 +86,17 @@ void Web::init(const std::string& base_url, int port) {
 
         std::string task_name;
         int32_t task_frequency;
+        task_type task_type;
         try {
             auto body_json = nlohmann::json::parse(req.body);
             task_name = body_json["task_name"];
             task_frequency = body_json["task_frequency"];
+            task_type = task_type_from_string(body_json["task_type"]);
         } catch (const std::exception&) {
             return crow::response(400);
         }
 
-        return tasks_add(user_session.value().user_id, task_name, task_frequency);
+        return tasks_add(user_session.value().user_id, task_name, task_type, task_frequency);
     });
 
     CROW_ROUTE(server, "/api/tasks/<string>/complete").methods("PUT"_method)
@@ -197,10 +200,11 @@ crow::response Web::tasks_list(const std::string& user_id) {
     return crow::response(200, "application/json", resp_json.dump());
 }
 
-crow::response Web::tasks_add(const std::string& user_id, const std::string& task_name, int32_t task_frequency) {
+crow::response Web::tasks_add(const std::string& user_id, const std::string& task_name, task_type task_type, int32_t task_frequency) {
     task_definition task;
     task.owner_user_id = user_id;
     task.name = task_name;
+    task.type = task_type;
     task.last_completed = get_today_as_ymd();
     task.frequency_days = task_frequency;
 
@@ -220,10 +224,31 @@ crow::response Web::tasks_delete(const std::string& user_id, const std::string& 
 }
 
 crow::response Web::tasks_complete(const std::string& user_id, const std::string& task_name) {
-    if (db.complete_task(user_id, task_name)) {
-        return crow::response(200);
-    } else {
+    // First, find the task to check if it's a once-off task
+    auto tasks = db.list_tasks_by_user(user_id);
+    auto task_it = std::find_if(tasks.begin(), tasks.end(), 
+        [&task_name](const task_definition& task) {
+            return task.name == task_name;
+        });
+    
+    if (task_it == tasks.end()) {
         return crow::response(404, "Not found");
+    }
+    
+    // If it's a once-off task, delete it instead of completing it
+    if (task_it->type == task_type::once_off) {
+        if (db.delete_task(user_id, task_name)) {
+            return crow::response(200);
+        } else {
+            return crow::response(500, "Failed to complete once-off task");
+        }
+    } else {
+        // For regular and counter tasks, just update the completion date
+        if (db.complete_task(user_id, task_name)) {
+            return crow::response(200);
+        } else {
+            return crow::response(404, "Not found");
+        }
     }
 }
 
