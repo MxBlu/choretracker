@@ -18,7 +18,9 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
 enum task_type {
-    regular = 0
+    regular = 0,
+    counter = 1,
+    once_off = 2
 };
 
 struct task_definition {

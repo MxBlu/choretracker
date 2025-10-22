@@ -22,11 +22,20 @@ void Bot::init() {
 
             dpp::slashcommand add_tasks_command("addtask", "Add a new task", cluster.me.id);
             add_tasks_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
-            add_tasks_command.add_option(
-                dpp::command_option(dpp::co_string, "name", "Name of task", true));
-            add_tasks_command.add_option(
-                dpp::command_option(dpp::co_integer, "frequency", "Frequency in days", true));
             
+            dpp::command_option add_regular_task_command(dpp::co_sub_command, "regular", "Create a task that should be regularly completed");
+            add_regular_task_command.add_option(dpp::command_option(dpp::co_string, "name", "Name of task", true));
+            add_regular_task_command.add_option(dpp::command_option(dpp::co_integer, "frequency", "Frequency in days", true));
+            add_tasks_command.add_option(add_regular_task_command);
+
+            dpp::command_option add_counter_task_command(dpp::co_sub_command, "counter", "Create a task where irregular tasks are tracked");
+            add_counter_task_command.add_option(dpp::command_option(dpp::co_string, "name", "Name of task", true));
+            add_tasks_command.add_option(add_counter_task_command);
+
+            dpp::command_option add_once_off_task_command(dpp::co_sub_command, "once-off", "Create a once-off task");
+            add_once_off_task_command.add_option(dpp::command_option(dpp::co_string, "name", "Name of task", true));
+            add_tasks_command.add_option(add_once_off_task_command);
+
             dpp::slashcommand delete_tasks_command("deletetask", "Delete a task", cluster.me.id);
             delete_tasks_command.set_interaction_contexts({ dpp::itc_private_channel, dpp::itc_bot_dm, dpp::itc_guild });
             delete_tasks_command.add_option(
@@ -82,16 +91,17 @@ void Bot::init() {
     });
 
     cluster.on_slashcommand([this](const dpp::slashcommand_t &event) {
-        spdlog::info(std::format("Command received: command='{}' user='{}'", event.command.get_command_name(), event.command.usr.username));
-        if (event.command.get_command_name() == "listtasks") {
+        auto command_name = event.command.get_command_name();
+        spdlog::info(std::format("Command received: command='{}' user='{}'", command_name, event.command.usr.username));
+        if (command_name == "listtasks") {
             list_tasks(db, event);
-        } else if (event.command.get_command_name() == "addtask") {
+        } else if (command_name == "addtask") {
             add_task(db, event);
-        } else if (event.command.get_command_name() == "deletetask") {
+        } else if (command_name == "deletetask") {
             delete_task(db, event);
-        } else if (event.command.get_command_name() == "resettask") {
+        } else if (command_name == "resettask") {
             complete_task(db, event);
-        } else if (event.command.get_command_name() == "runalerts") {
+        } else if (command_name == "runalerts") {
             alerter.run_alerts();
         } else {
             spdlog::error("Unknown command received");
@@ -145,12 +155,42 @@ void list_tasks(Database &db, const dpp::slashcommand_t &event) {
     auto tasks = db.list_tasks_by_user(user_id);
     if (tasks.size() > 0) {
         std::string task_list = "Tasks: \n";
+        std::string once_off_task_list = "Once off tasks: \n";
+
+        bool has_repeated_tasks = false;
+        bool has_once_off_tasks = false;
+
         for (auto task : tasks) {
-            task_list += std::format("{} - Every {} days - Last performed {}\n", 
-                task.name, task.frequency_days, task.last_completed);
+            switch (task.type) {
+                case task_type::regular:
+                    task_list += std::format("{} - Every {} days - Last performed {}\n", 
+                        task.name, task.frequency_days, task.last_completed);
+                    has_repeated_tasks = true;
+                    break;
+                case task_type::counter:
+                    task_list += std::format("{} - Counter - Last performed {}\n", 
+                        task.name, task.frequency_days, task.last_completed);
+                    has_repeated_tasks = true;
+                    break;
+                case task_type::once_off:
+                    once_off_task_list += std::format("{}\n", task.name);
+                    has_once_off_tasks = true;
+                    break;
+            }
+        }
+
+        std::string message;
+        if (has_repeated_tasks) {
+            message += task_list;
+        }
+        if (has_once_off_tasks) {
+            if (has_repeated_tasks) {
+                message += "\n";
+            }
+            message += once_off_task_list;
         }
         
-        event.reply(dpp::message(task_list).set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message(message).set_flags(dpp::m_ephemeral));
     } else {
         event.reply(dpp::message("No tasks found").set_flags(dpp::m_ephemeral));
     }
@@ -160,14 +200,26 @@ void add_task(Database &db, const dpp::slashcommand_t &event) {
     auto user_id = event.command.usr.id;
     auto guild_id = event.command.guild_id;
 
+    auto subcommand = event.command.get_command_interaction().options[0];
+
     auto task_name = std::get<std::string>(event.get_parameter("name"));
-    auto task_frequency = std::get<int64_t>(event.get_parameter("frequency"));
+    task_type type;
+    int32_t frequency = 0;
+
+    if (subcommand.name == "regular") {
+        type = task_type::regular;
+        frequency = std::get<int64_t>(event.get_parameter("frequency"));
+    } else if (subcommand.name == "counter") {
+        type = task_type::counter;
+    } else if (subcommand.name == "once_off") {
+        type = task_type::once_off;
+    }
 
     db.add_task({ 
         user_id,
         task_name,
-        task_type::regular,
-        static_cast<int>(task_frequency), 
+        type,
+        frequency,
         get_today_as_ymd() 
     });
 
