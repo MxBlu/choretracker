@@ -48,7 +48,7 @@ void Alerter::run_alerts() {
             case task_type::once_off:
                one_off_messages.push_back(std::format("* {}", task.name));
                break;
-            case task_type::counter: {
+            case task_type::regular: {
                auto next_expected_time = std::chrono::sys_days(task.last_completed) + std::chrono::days(task.frequency_days);
                if (next_expected_time == now) {
                   repeated_messages.push_back(std::format("* {}", task.name));
